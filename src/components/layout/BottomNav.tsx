@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Search, ShoppingCart, User } from 'lucide-react';
+import { Home, Search, ShoppingCart, User, Wallet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function BottomNav() {
@@ -29,10 +29,10 @@ export function BottomNav() {
             badge: 0, // TODO: Connect to cart store
         },
         {
-            label: 'MY',
-            href: '/profile',
-            icon: User,
-            isActive: pathname.startsWith('/profile'),
+            label: '지갑',
+            href: '/wallet',
+            icon: Wallet,
+            isActive: pathname.startsWith('/wallet'),
         },
     ];
 
