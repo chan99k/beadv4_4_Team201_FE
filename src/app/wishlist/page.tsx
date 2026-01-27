@@ -5,6 +5,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { WishItemCard, WishItemStatus } from '@/components/common/WishItemCard';
 import { WishlistHeader, Visibility } from '@/features/wishlist/components/WishlistHeader';
 import { AddItemDrawer } from '@/features/wishlist/components/AddItemDrawer';
+import { CreateFundingModal } from '@/features/funding/components/CreateFundingModal';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
@@ -52,13 +53,19 @@ const MOCK_ITEMS = [
 
 export default function MyWishlistPage() {
     const [visibility, setVisibility] = useState<Visibility>('PUBLIC');
+    const [fundingModalOpen, setFundingModalOpen] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState<{ name: string; price: number; imageUrl: string } | null>(null);
+
+    const handleStartFunding = (item: typeof MOCK_ITEMS[0]) => {
+        setSelectedProduct(item.product);
+        setFundingModalOpen(true);
+    };
 
     return (
         <AppShell
             headerTitle="내 위시리스트"
             headerVariant="detail"
             showBottomNav={true}
-        // Right action could be settings or share
         >
             <WishlistHeader
                 isOwner={true}
@@ -76,7 +83,11 @@ export default function MyWishlistPage() {
                         key={item.id}
                         item={item}
                         isOwner={true}
-                        onAction={() => console.log('Action for', item.id)}
+                        onAction={() => {
+                            if (item.status === 'AVAILABLE') {
+                                handleStartFunding(item);
+                            }
+                        }}
                     />
                 ))}
             </div>
@@ -92,6 +103,15 @@ export default function MyWishlistPage() {
                     </Button>
                 </AddItemDrawer>
             </div>
+
+            {selectedProduct && (
+                <CreateFundingModal
+                    open={fundingModalOpen}
+                    onOpenChange={setFundingModalOpen}
+                    product={selectedProduct}
+                    onSuccess={() => setFundingModalOpen(false)}
+                />
+            )}
         </AppShell>
     );
 }
