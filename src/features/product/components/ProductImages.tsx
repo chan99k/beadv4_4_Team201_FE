@@ -37,16 +37,16 @@ export function ProductImages({ images, alt }: ProductImagesProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Main Image */}
-      <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-gray-100">
+      <div className="relative aspect-[4/3] w-full max-h-[45vh] overflow-hidden rounded-lg bg-gray-100 mx-auto">
         <Image
           src={validImages[currentIndex]}
           alt={`${alt} - Image ${currentIndex + 1}`}
           fill
-          className="object-cover"
+          className="object-contain"
           priority
-          sizes="100vw"
+          sizes="(max-width: 768px) 100vw, 500px"
         />
 
         {/* Navigation Arrows (only show if multiple images) */}
