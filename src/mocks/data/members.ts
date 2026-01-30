@@ -1,7 +1,7 @@
 export interface Member {
   id: string;
   authSub: string;
-  nickname: string;
+  nickname: string | null;
   email: string;
   avatarUrl: string | null;
   role: 'USER' | 'SELLER';
@@ -11,7 +11,7 @@ export interface Member {
 
 export interface MemberPublic {
   id: string;
-  nickname: string;
+  nickname: string | null;
   avatarUrl: string | null;
 }
 

@@ -50,12 +50,22 @@ let cartItems: CartItem[] = [];
 
 export const handlers = [
   // ============================================
-  // AUTH
+  // AUTH (BFF & Backend)
   // ============================================
-  http.post(`${API_BASE}/api/auth/login`, () => {
+  // Mock the BFF sync route
+  http.post('*/api/auth/sync', () => {
+    // Dynamically check if new user
+    const isNewUser = !currentUser.nickname;
     return HttpResponse.json({
       member: currentUser,
-      isNewUser: false,
+      isNewUser,
+    });
+  }),
+  http.post(`${API_BASE}/api/auth/login`, () => {
+    const isNewUser = !currentUser.nickname;
+    return HttpResponse.json({
+      member: currentUser,
+      isNewUser,
     });
   }),
 
@@ -82,6 +92,28 @@ export const handlers = [
       avatarUrl: member.avatarUrl,
     };
     return HttpResponse.json(publicMember);
+  }),
+
+  http.patch(`${API_BASE}/api/members/:memberId`, async ({ params, request }) => {
+    const { memberId } = params;
+    const body = await request.json();
+
+    // Update currentUser if it matches (for testing flow)
+    if (currentUser.id === memberId) {
+      Object.assign(currentUser, body);
+    }
+
+    const memberIndex = members.findIndex(m => m.id === memberId);
+    if (memberIndex !== -1) {
+      members[memberIndex] = { ...members[memberIndex], ...(body as object) };
+      return HttpResponse.json(members[memberIndex]);
+    }
+
+    // Fallback if not found (shouldn't happen in test flow)
+    return HttpResponse.json({
+      id: memberId,
+      ...(body as object)
+    });
   }),
 
   http.get(`${API_BASE}/api/members/:memberId/friends`, ({ request }) => {
