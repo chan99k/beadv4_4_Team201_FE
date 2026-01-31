@@ -178,7 +178,7 @@ export function Header({
 // --- Sub Components ---
 
 function DesktopTopNav() {
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
     const { data: cart } = useCart();
     const cartCount = cart?.items.length || 0;
 
@@ -203,10 +203,10 @@ function DesktopTopNav() {
                             </span>
                         )}
                     </Link>
-                    <button onClick={logout} className="flex items-center gap-1 hover:opacity-60 transition-opacity">
+                    <a href="/auth/logout" className="flex items-center gap-1 hover:opacity-60 transition-opacity">
                         <LogOut className="w-3 h-3" />
                         LOGOUT
-                    </button>
+                    </a>
                 </>
             ) : (
                 <div className="flex gap-4">
