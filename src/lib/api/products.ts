@@ -22,7 +22,7 @@ export async function getProducts(params?: ProductsParams): Promise<ProductListR
   if (params?.size !== undefined) queryParams.append('size', params.size.toString());
 
   const queryString = queryParams.toString();
-  const endpoint = queryString ? `/api/products?${queryString}` : '/api/products';
+  const endpoint = queryString ? `/api/v2/products?${queryString}` : '/api/v2/products';
 
   return apiClient.get<ProductListResponse>(endpoint);
 }
@@ -34,11 +34,11 @@ export async function searchProducts(params: SearchProductsParams): Promise<Prod
   if (params?.page !== undefined) queryParams.append('page', params.page.toString());
   if (params?.size !== undefined) queryParams.append('size', params.size.toString());
 
-  return apiClient.get<ProductListResponse>(`/api/products/search?${queryParams.toString()}`);
+  return apiClient.get<ProductListResponse>(`/api/v2/products/search?${queryParams.toString()}`);
 }
 
 export async function getProduct(productId: string): Promise<ProductDetail> {
-  return apiClient.get<ProductDetail>(`/api/products/${productId}`);
+  return apiClient.get<ProductDetail>(`/api/v2/products/${productId}`);
 }
 
 export async function getPopularProducts(limit?: number): Promise<PopularProductsResponse> {
@@ -46,7 +46,7 @@ export async function getPopularProducts(limit?: number): Promise<PopularProduct
   if (limit !== undefined) queryParams.append('limit', limit.toString());
 
   const queryString = queryParams.toString();
-  const endpoint = queryString ? `/api/products/popular?${queryString}` : '/api/products/popular';
+  const endpoint = queryString ? `/api/v2/products/popular?${queryString}` : '/api/v2/products/popular';
 
   return apiClient.get<PopularProductsResponse>(endpoint);
 }

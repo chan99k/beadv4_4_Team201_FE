@@ -7,25 +7,25 @@ import type {
 } from '@/types/cart';
 
 export async function getCart(): Promise<Cart> {
-  return apiClient.get<Cart>('/api/cart');
+  return apiClient.get<Cart>('/api/v2/cart');
 }
 
 export async function addCartItem(data: CartItemCreateRequest): Promise<CartItem> {
-  return apiClient.post<CartItem>('/api/cart/items', data);
+  return apiClient.post<CartItem>('/api/v2/cart/items', data);
 }
 
 export async function updateCartItem(itemId: string, data: CartItemUpdateRequest): Promise<CartItem> {
-  return apiClient.patch<CartItem>(`/api/cart/items/${itemId}`, data);
+  return apiClient.patch<CartItem>(`/api/v2/cart/items/${itemId}`, data);
 }
 
 export async function removeCartItem(itemId: string): Promise<void> {
-  return apiClient.delete<void>(`/api/cart/items/${itemId}`);
+  return apiClient.delete<void>(`/api/v2/cart/items/${itemId}`);
 }
 
 export async function toggleCartItemSelection(itemId: string, selected: boolean): Promise<CartItem> {
-  return apiClient.patch<CartItem>(`/api/cart/items/${itemId}`, { selected });
+  return apiClient.patch<CartItem>(`/api/v2/cart/items/${itemId}`, { selected });
 }
 
 export async function clearCart(): Promise<void> {
-  return apiClient.delete<void>('/api/cart/clear');
+  return apiClient.delete<void>('/api/v2/cart/clear');
 }

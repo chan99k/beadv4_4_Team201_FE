@@ -8,15 +8,15 @@ import type {
 } from '@/types/member';
 
 export async function getMember(memberId: string): Promise<MemberPublic> {
-  return apiClient.get<MemberPublic>(`/api/members/${memberId}`);
+  return apiClient.get<MemberPublic>(`/api/v2/members/${memberId}`);
 }
 
 export async function updateMember(memberId: string, data: MemberUpdateRequest): Promise<Member> {
-  return apiClient.patch<Member>(`/api/members/${memberId}`, data);
+  return apiClient.patch<Member>(`/api/v2/members/${memberId}`, data);
 }
 
 export async function signupMember(data: MemberUpdateRequest): Promise<Member> {
-  return apiClient.post<Member>('/api/members/signup', data);
+  return apiClient.post<Member>('/api/v2/members/signup', data);
 }
 
 export async function getMemberFriends(memberId: string, params?: PageParams): Promise<MemberListResponse> {
@@ -25,7 +25,7 @@ export async function getMemberFriends(memberId: string, params?: PageParams): P
   if (params?.size !== undefined) queryParams.append('size', params.size.toString());
 
   const queryString = queryParams.toString();
-  const endpoint = queryString ? `/api/members/${memberId}/friends?${queryString}` : `/api/members/${memberId}/friends`;
+  const endpoint = queryString ? `/api/v2/members/${memberId}/friends?${queryString}` : `/api/v2/members/${memberId}/friends`;
 
   return apiClient.get<MemberListResponse>(endpoint);
 }

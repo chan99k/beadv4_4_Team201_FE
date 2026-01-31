@@ -12,23 +12,23 @@ export interface WishlistVisibilityUpdateRequest {
 }
 
 export async function getMyWishlist(): Promise<Wishlist> {
-  return apiClient.get<Wishlist>('/api/wishlists/me');
+  return apiClient.get<Wishlist>('/api/v2/wishlists/me');
 }
 
 export async function getWishlist(memberId: string): Promise<Wishlist> {
-  return apiClient.get<Wishlist>(`/api/wishlists/${memberId}`);
+  return apiClient.get<Wishlist>(`/api/v2/wishlists/${memberId}`);
 }
 
 export async function addWishlistItem(data: WishItemCreateRequest): Promise<WishItem> {
-  return apiClient.post<WishItem>('/api/wishlists/items', data);
+  return apiClient.post<WishItem>('/api/v2/wishlists/items', data);
 }
 
 export async function removeWishlistItem(itemId: string): Promise<void> {
-  return apiClient.delete<void>(`/api/wishlists/items/${itemId}`);
+  return apiClient.delete<void>(`/api/v2/wishlists/items/${itemId}`);
 }
 
 export async function updateWishlistVisibility(data: WishlistVisibilityUpdateRequest): Promise<Wishlist> {
-  return apiClient.patch<Wishlist>('/api/wishlists/visibility', data);
+  return apiClient.patch<Wishlist>('/api/v2/wishlists/visibility', data);
 }
 
 export async function getFriendsWishlists(limit?: number): Promise<FriendWishlistListResponse> {
@@ -36,7 +36,7 @@ export async function getFriendsWishlists(limit?: number): Promise<FriendWishlis
   if (limit !== undefined) queryParams.append('limit', limit.toString());
 
   const queryString = queryParams.toString();
-  const endpoint = queryString ? `/api/friends/wishlists?${queryString}` : '/api/friends/wishlists';
+  const endpoint = queryString ? `/api/v2/friends/wishlists?${queryString}` : '/api/v2/friends/wishlists';
 
   return apiClient.get<FriendWishlistListResponse>(endpoint);
 }

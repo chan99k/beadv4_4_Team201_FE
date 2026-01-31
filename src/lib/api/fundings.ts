@@ -19,23 +19,23 @@ export interface RefuseFundingRequest {
 }
 
 export async function getFunding(fundingId: string): Promise<FundingDetail> {
-  return apiClient.get<FundingDetail>(`/api/fundings/${fundingId}`);
+  return apiClient.get<FundingDetail>(`/api/v2/fundings/${fundingId}`);
 }
 
 export async function createFunding(data: FundingCreateRequest): Promise<Funding> {
-  return apiClient.post<Funding>('/api/fundings', data);
+  return apiClient.post<Funding>('/api/v2/fundings', data);
 }
 
 export async function participateFunding(fundingId: string, amount: number): Promise<FundingParticipant> {
-  return apiClient.post<FundingParticipant>(`/api/fundings/${fundingId}/participate`, { amount });
+  return apiClient.post<FundingParticipant>(`/api/v2/fundings/${fundingId}/participate`, { amount });
 }
 
 export async function acceptFunding(fundingId: string): Promise<Funding> {
-  return apiClient.post<Funding>(`/api/fundings/${fundingId}/accept`, {});
+  return apiClient.post<Funding>(`/api/v2/fundings/${fundingId}/accept`, {});
 }
 
 export async function refuseFunding(fundingId: string, data?: RefuseFundingRequest): Promise<Funding> {
-  return apiClient.post<Funding>(`/api/fundings/${fundingId}/refuse`, data || {});
+  return apiClient.post<Funding>(`/api/v2/fundings/${fundingId}/refuse`, data || {});
 }
 
 export async function getMyOrganizedFundings(params?: FundingsParams): Promise<FundingListResponse> {
@@ -45,7 +45,7 @@ export async function getMyOrganizedFundings(params?: FundingsParams): Promise<F
   if (params?.size !== undefined) queryParams.append('size', params.size.toString());
 
   const queryString = queryParams.toString();
-  const endpoint = queryString ? `/api/fundings/my/organized?${queryString}` : '/api/fundings/my/organized';
+  const endpoint = queryString ? `/api/v2/fundings/my/organized?${queryString}` : '/api/v2/fundings/my/organized';
 
   return apiClient.get<FundingListResponse>(endpoint);
 }
@@ -57,7 +57,7 @@ export async function getMyParticipatedFundings(params?: FundingsParams): Promis
   if (params?.size !== undefined) queryParams.append('size', params.size.toString());
 
   const queryString = queryParams.toString();
-  const endpoint = queryString ? `/api/fundings/my/participated?${queryString}` : '/api/fundings/my/participated';
+  const endpoint = queryString ? `/api/v2/fundings/my/participated?${queryString}` : '/api/v2/fundings/my/participated';
 
   return apiClient.get<FundingListResponse>(endpoint);
 }
@@ -69,7 +69,7 @@ export async function getMyReceivedFundings(params?: FundingsParams): Promise<Fu
   if (params?.size !== undefined) queryParams.append('size', params.size.toString());
 
   const queryString = queryParams.toString();
-  const endpoint = queryString ? `/api/fundings/my/received?${queryString}` : '/api/fundings/my/received';
+  const endpoint = queryString ? `/api/v2/fundings/my/received?${queryString}` : '/api/v2/fundings/my/received';
 
   return apiClient.get<FundingListResponse>(endpoint);
 }
@@ -81,7 +81,7 @@ export async function getFundings(params?: FundingsParams): Promise<FundingListR
   if (params?.size !== undefined) queryParams.append('size', params.size.toString());
 
   const queryString = queryParams.toString();
-  const endpoint = queryString ? `/api/fundings?${queryString}` : '/api/fundings';
+  const endpoint = queryString ? `/api/v2/fundings?${queryString}` : '/api/v2/fundings';
 
   return apiClient.get<FundingListResponse>(endpoint);
 }
@@ -92,7 +92,7 @@ export async function getFundingParticipants(fundingId: string, params?: PagePar
   if (params?.size !== undefined) queryParams.append('size', params.size.toString());
 
   const queryString = queryParams.toString();
-  const endpoint = queryString ? `/api/fundings/${fundingId}/participants?${queryString}` : `/api/fundings/${fundingId}/participants`;
+  const endpoint = queryString ? `/api/v2/fundings/${fundingId}/participants?${queryString}` : `/api/v2/fundings/${fundingId}/participants`;
 
   return apiClient.get<ParticipantListResponse>(endpoint);
 }

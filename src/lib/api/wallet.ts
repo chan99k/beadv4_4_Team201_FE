@@ -13,11 +13,11 @@ export type WalletTransactionType = TransactionType;
 export type WalletHistoryParams = WalletHistoryQueryParams;
 
 export async function getWallet(): Promise<Wallet> {
-  return apiClient.get<Wallet>('/api/wallet');
+  return apiClient.get<Wallet>('/api/v2/wallet');
 }
 
 export async function chargeWallet(data: WalletChargeRequest): Promise<WalletChargeResponse> {
-  return apiClient.post<WalletChargeResponse>('/api/wallet/charge', data);
+  return apiClient.post<WalletChargeResponse>('/api/v2/wallet/charge', data);
 }
 
 export async function getWalletHistory(params?: WalletHistoryParams): Promise<WalletHistoryResponse> {
@@ -27,7 +27,7 @@ export async function getWalletHistory(params?: WalletHistoryParams): Promise<Wa
   if (params?.size !== undefined) queryParams.append('size', params.size.toString());
 
   const queryString = queryParams.toString();
-  const endpoint = queryString ? `/api/wallet/history?${queryString}` : '/api/wallet/history';
+  const endpoint = queryString ? `/api/v2/wallet/history?${queryString}` : '/api/v2/wallet/history';
 
   return apiClient.get<WalletHistoryResponse>(endpoint);
 }
