@@ -108,7 +108,7 @@ export function Footer() {
                     <div>
                         <p className="text-xs text-muted-foreground mb-3">MY ACCOUNT</p>
                         <ul className="space-y-2">
-                            {FOOTER_LINKS.myAccount.map((link) => (
+                            {[...FOOTER_LINKS.myOrder, ...FOOTER_LINKS.myAccount].map((link) => (
                                 <li key={link.href}>
                                     <Link
                                         href={link.href}
