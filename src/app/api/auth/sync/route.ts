@@ -13,7 +13,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 export async function POST() {
     try {
         const session = await auth0.getSession();
-        const idToken = session?.idToken;
+        const idToken = session?.tokenSet?.idToken;
 
         if (!idToken) {
             console.warn('[Sync] No ID Token found in session');
@@ -28,10 +28,18 @@ export async function POST() {
             body: JSON.stringify({ idToken }),
         });
 
-        const data = await response.json();
+        // Handle empty or non-JSON responses
+        const text = await response.text();
+        let data;
+        try {
+            data = text ? JSON.parse(text) : {};
+        } catch {
+            console.error('[Sync] Failed to parse response:', text);
+            data = { message: text || 'Unknown error' };
+        }
 
         if (!response.ok) {
-            console.error('[Sync] Backend sync failed:', data);
+            console.error('[Sync] Backend sync failed:', response.status, data);
             return NextResponse.json(data, { status: response.status });
         }
 

@@ -12,9 +12,14 @@ import { Auth0Client } from '@auth0/nextjs-auth0/server';
  * - AUTH0_CLIENT_SECRET
  * - AUTH0_SECRET
  * - APP_BASE_URL
- * - AUTH0_AUDIENCE (optional)
+ * - AUTH0_AUDIENCE (for API access tokens)
  */
-export const auth0 = new Auth0Client();
+export const auth0 = new Auth0Client({
+  authorizationParameters: {
+    scope: 'openid profile email',
+    audience: process.env.AUTH0_AUDIENCE,
+  },
+});
 
 /**
  * Auth0 route paths

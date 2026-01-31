@@ -25,12 +25,14 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ p
 
 async function proxyRequest(req: NextRequest, path: string[], method: string) {
   try {
-    const session = await auth0.getSession();
-    const accessToken = session?.accessToken;
+    // Auth0 v4: use getAccessToken() method to get access token
+    const tokenResult = await auth0.getAccessToken();
 
-    if (!accessToken) {
+    if (!tokenResult?.token) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
+
+    const accessToken = tokenResult.token;
 
     const pathString = path.join('/');
     const url = `${API_URL}/${pathString}${req.nextUrl.search}`;
