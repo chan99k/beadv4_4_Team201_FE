@@ -73,11 +73,7 @@ export function Header({
                             {title && <h1 className="text-lg font-semibold">{title}</h1>}
                         </div>
                         <div className="flex items-center gap-2">
-                            {rightAction || (
-                                <Button variant="ghost" size="icon">
-                                    <MoreHorizontal className="h-6 w-6" />
-                                </Button>
-                            )}
+                            {rightAction || <AuthActions />}
                         </div>
                     </div>
                 );
@@ -134,11 +130,38 @@ export function Header({
 }
 
 /**
- * Main Header Content with Auth Integration
+ * Auth actions for Header (Notifications + UserMenu or Login/Signup)
  */
-function MainHeaderContent() {
+function AuthActions() {
     const { user, isLoading } = useAuth();
 
+    if (isLoading) {
+        return <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />;
+    }
+
+    return (
+        <div className="flex items-center gap-2">
+            {user && (
+                <Button variant="ghost" size="icon" aria-label="Notifications" className="hidden sm:flex">
+                    <Bell className="h-6 w-6" />
+                </Button>
+            )}
+            {user ? (
+                <UserMenu />
+            ) : (
+                <div className="flex gap-2">
+                    <LoginButton />
+                    <SignupButton />
+                </div>
+            )}
+        </div>
+    );
+}
+
+/**
+ * Main Header Content
+ */
+function MainHeaderContent() {
     return (
         <div className="flex w-full items-center justify-between">
             <div className="flex items-center gap-2">
@@ -149,23 +172,7 @@ function MainHeaderContent() {
                     Giftify
                 </Link>
             </div>
-            <div className="flex items-center gap-2">
-                {user && (
-                    <Button variant="ghost" size="icon" aria-label="Notifications">
-                        <Bell className="h-6 w-6" />
-                    </Button>
-                )}
-                {isLoading ? (
-                    <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
-                ) : user ? (
-                    <UserMenu />
-                ) : (
-                    <div className="flex gap-2">
-                        <LoginButton />
-                        <SignupButton />
-                    </div>
-                )}
-            </div>
+            <AuthActions />
         </div>
     );
 }
