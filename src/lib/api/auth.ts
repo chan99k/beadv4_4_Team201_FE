@@ -31,7 +31,9 @@ export async function sync(): Promise<LoginResponse> {
   });
 
   if (!response.ok) {
-    throw new Error('Failed to sync session');
+    const errorData = await response.json().catch(() => ({}));
+    console.error('[sync] Error response:', response.status, errorData);
+    throw new Error(errorData.message || `Failed to sync session (${response.status})`);
   }
 
   return response.json();
