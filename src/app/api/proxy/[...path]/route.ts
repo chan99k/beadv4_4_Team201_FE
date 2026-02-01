@@ -31,9 +31,8 @@ async function proxyRequest(req: NextRequest, path: string[], method: string) {
       // Auth0 v4: use getAccessToken() method to get access token
       const tokenResult = await auth0.getAccessToken();
       accessToken = tokenResult?.token;
-    } catch (e) {
+    } catch {
       // If no session exists or error getting token, proceed without it
-      console.log('[Proxy] Proceeding without access token');
     }
 
     const pathString = path.join('/');

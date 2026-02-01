@@ -5,7 +5,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 /**
  * Authentication Sync Route (BFF)
- * 
+ *
  * This route is called after a successful Auth0 login to synchronize
  * the session with the backend database. It forwards the id_token
  * to the backend's login endpoint.

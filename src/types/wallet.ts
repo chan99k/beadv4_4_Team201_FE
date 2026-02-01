@@ -12,8 +12,7 @@ export type TransactionType = 'CHARGE' | 'PAYMENT' | 'REFUND';
  * Wallet information
  */
 export interface Wallet {
-    id: string;
-    memberId: string;
+    walletId: number;
     balance: number;
 }
 

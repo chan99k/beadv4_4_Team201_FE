@@ -13,7 +13,7 @@ export type WalletTransactionType = TransactionType;
 export type WalletHistoryParams = WalletHistoryQueryParams;
 
 export async function getWallet(): Promise<Wallet> {
-  return apiClient.get<Wallet>('/api/v2/wallet');
+  return apiClient.get<Wallet>('/api/v2/wallet/balance');
 }
 
 export async function chargeWallet(data: WalletChargeRequest): Promise<WalletChargeResponse> {

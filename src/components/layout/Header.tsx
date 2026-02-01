@@ -111,7 +111,7 @@ export function Header({
         // Default Main Header (Mobile View)
         return (
             <div className="flex md:hidden w-full items-center justify-between h-14 px-4 bg-white sticky top-0 z-50 border-b">
-                <Link href="/" className="text-xl font-bold tracking-tighter">
+                <Link href="/" className="text-2xl font-bold tracking-tighter">
                     Giftify
                 </Link>
                 <div className="flex items-center gap-4">
@@ -132,7 +132,7 @@ export function Header({
                     <div className="border-b border-gray-100">
                         {/* Row 1: Top Bar */}
                         <div className="max-w-screen-2xl mx-auto px-8 h-10 flex items-center justify-between">
-                            <Link href="/" className="text-sm font-bold tracking-widest">
+                            <Link href="/" className="text-lg font-bold tracking-widest">
                                 Giftify
                             </Link>
                             <DesktopTopNav />
