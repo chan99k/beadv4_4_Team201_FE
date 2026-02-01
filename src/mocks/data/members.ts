@@ -21,9 +21,9 @@ export interface MemberPublic {
 export const currentUser: Member = {
   id: 'member-dev',
   authSub: 'auth0|dev-user-123',
-  nickname: null,
+  nickname: 'TestUser',
   email: 'developer@giftify.app',
-  avatarUrl: null,
+  avatarUrl: 'https://i.pravatar.cc/150?u=dev',
   role: 'USER',
   status: 'ACTIVE',
   createdAt: new Date().toISOString(),

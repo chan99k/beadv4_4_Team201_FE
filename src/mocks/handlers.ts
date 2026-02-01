@@ -34,6 +34,55 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 // Mock wallet data
 let walletBalance = 1000000;
 
+interface WalletTransaction {
+  id: string;
+  type: 'CHARGE' | 'WITHDRAW' | 'PAYMENT';
+  amount: number;
+  balanceAfter: number;
+  description: string;
+  relatedId: string | null;
+  createdAt: string;
+}
+
+let walletTransactions: WalletTransaction[] = [
+  {
+    id: 'tx-1',
+    type: 'CHARGE',
+    amount: 500000,
+    balanceAfter: 500000,
+    description: '포인트 충전',
+    relatedId: null,
+    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'tx-2',
+    type: 'PAYMENT',
+    amount: -50000,
+    balanceAfter: 450000,
+    description: '펀딩 참여',
+    relatedId: 'funding-1',
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'tx-3',
+    type: 'CHARGE',
+    amount: 600000,
+    balanceAfter: 1050000,
+    description: '포인트 충전',
+    relatedId: null,
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'tx-4',
+    type: 'PAYMENT',
+    amount: -50000,
+    balanceAfter: 1000000,
+    description: '펀딩 참여',
+    relatedId: 'funding-2',
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+];
+
 // Mock cart data
 interface CartItem {
   id: string;
@@ -49,10 +98,38 @@ interface CartItem {
 let cartItems: CartItem[] = [];
 
 export const handlers = [
-  // auth/login, logout, me and member signup/me should always hit the backend
-  http.all('**/api/v2/auth/**', () => passthrough()),
-  http.all('**/api/v2/members/**', () => passthrough()),
-  http.all('**/api/v2/wallet/**', () => passthrough()),
+  // ============================================
+  // AUTH & MEMBERS (Mocked for E2E testing)
+  // ============================================
+  http.get('**/api/v2/auth/me', () => {
+    return HttpResponse.json(currentUser);
+  }),
+
+  http.post('**/api/v2/auth/login', () => {
+    return HttpResponse.json({ success: true });
+  }),
+
+  http.post('**/api/v2/auth/logout', () => {
+    return HttpResponse.json({ success: true });
+  }),
+
+  http.get('**/api/v2/members/me', () => {
+    return HttpResponse.json(currentUser);
+  }),
+
+  http.post('**/api/v2/members/signup', async ({ request }) => {
+    const body = await request.json();
+    const { nickname } = body as { nickname: string };
+    const updatedUser = { ...currentUser, nickname };
+    return HttpResponse.json(updatedUser, { status: 201 });
+  }),
+
+  http.patch('**/api/v2/members/me', async ({ request }) => {
+    const body = await request.json();
+    const updatedUser = { ...currentUser, ...(body as object) };
+    return HttpResponse.json(updatedUser);
+  }),
+  // Wallet endpoints are mocked below
   http.all('**/api/v2/payments/**', () => passthrough()),
   http.all('**/api/auth/**', () => passthrough()),
 
@@ -72,6 +149,117 @@ export const handlers = [
       friendsWishlists: friendWishlistsData,
       popularProducts: popularProducts.slice(0, 8),
       walletBalance,
+    });
+  }),
+
+  // ============================================
+  // WALLET
+  // ============================================
+  http.get('**/api/v2/wallet/balance', () => {
+    return HttpResponse.json({
+      walletId: 1,
+      balance: walletBalance,
+    });
+  }),
+
+  http.get('**/api/v2/wallet/history', ({ request }) => {
+    const url = new URL(request.url);
+    const type = url.searchParams.get('type');
+    const page = parseInt(url.searchParams.get('page') || '0');
+    const size = parseInt(url.searchParams.get('size') || '20');
+
+    let filtered = walletTransactions;
+    if (type) {
+      filtered = walletTransactions.filter((t) => t.type === type);
+    }
+
+    // Sort by createdAt descending
+    filtered = [...filtered].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    const start = page * size;
+    const end = start + size;
+    const paginated = filtered.slice(start, end);
+
+    return HttpResponse.json({
+      content: paginated,
+      page: {
+        page,
+        size,
+        totalElements: filtered.length,
+        totalPages: Math.ceil(filtered.length / size),
+        hasNext: end < filtered.length,
+        hasPrevious: page > 0,
+      },
+    });
+  }),
+
+  http.post('**/api/v2/wallet/charge', async ({ request }) => {
+    const body = await request.json();
+    const { amount } = body as { amount: number };
+
+    walletBalance += amount;
+
+    const newTransaction: WalletTransaction = {
+      id: `tx-${Date.now()}`,
+      type: 'CHARGE',
+      amount,
+      balanceAfter: walletBalance,
+      description: '포인트 충전',
+      relatedId: null,
+      createdAt: new Date().toISOString(),
+    };
+    walletTransactions.unshift(newTransaction);
+
+    return HttpResponse.json({
+      chargeId: newTransaction.id,
+      paymentUrl: 'https://payment.example.com/mock',
+      amount,
+    });
+  }),
+
+  http.post('**/api/v2/wallet/withdraw', async ({ request }) => {
+    const body = await request.json();
+    const { amount, bankCode, accountNumber } = body as {
+      amount: number;
+      bankCode: string;
+      accountNumber: string;
+    };
+
+    if (amount > walletBalance) {
+      return HttpResponse.json(
+        { error: 'INSUFFICIENT_BALANCE', message: '잔액이 부족합니다.' },
+        { status: 400 }
+      );
+    }
+
+    walletBalance -= amount;
+
+    const bankNames: Record<string, string> = {
+      '004': 'KB국민은행',
+      '088': '신한은행',
+      '020': '우리은행',
+      '081': '하나은행',
+    };
+
+    const newTransaction: WalletTransaction = {
+      id: `tx-${Date.now()}`,
+      type: 'WITHDRAW',
+      amount: -amount,
+      balanceAfter: walletBalance,
+      description: `${bankNames[bankCode] || '은행'} 출금`,
+      relatedId: null,
+      createdAt: new Date().toISOString(),
+    };
+    walletTransactions.unshift(newTransaction);
+
+    return HttpResponse.json({
+      walletId: 1,
+      balance: walletBalance,
+      withdrawnAmount: amount,
+      transactionId: newTransaction.id,
+      status: 'PENDING',
     });
   }),
 
