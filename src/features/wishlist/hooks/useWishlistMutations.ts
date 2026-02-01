@@ -34,7 +34,34 @@ export function useRemoveWishlistItem() {
 
   return useMutation({
     mutationFn: (itemId: string) => removeWishlistItem(itemId),
-    onSuccess: () => {
+    onMutate: async (itemId) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: queryKeys.myWishlist });
+
+      // Snapshot the previous value
+      const previousWishlist = queryClient.getQueryData(queryKeys.myWishlist);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(queryKeys.myWishlist, (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          items: old.items.filter((item: any) => item.id !== itemId),
+          itemCount: Math.max(0, old.itemCount - 1),
+        };
+      });
+
+      // Return a context object with the snapshotted value
+      return { previousWishlist };
+    },
+    // If the mutation fails, use the context returned from onMutate to roll back
+    onError: (err, itemId, context) => {
+      if (context?.previousWishlist) {
+        queryClient.setQueryData(queryKeys.myWishlist, context.previousWishlist);
+      }
+    },
+    // Always refetch after error or success:
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.myWishlist });
     },
   });

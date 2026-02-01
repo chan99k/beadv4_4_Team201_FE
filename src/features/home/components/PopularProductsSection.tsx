@@ -3,6 +3,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@/lib/query/keys';
+import { getProduct } from '@/lib/api/products';
 import type { Product } from '@/types/product';
 
 interface PopularProductsSectionProps {
@@ -10,7 +13,16 @@ interface PopularProductsSectionProps {
 }
 
 export function PopularProductsSection({ products }: PopularProductsSectionProps) {
+    const queryClient = useQueryClient();
     const displayProducts = products.slice(0, 10);
+
+    const handlePrefetch = (productId: string) => {
+        queryClient.prefetchQuery({
+            queryKey: queryKeys.product(productId),
+            queryFn: () => getProduct(productId),
+            staleTime: 60 * 1000,
+        });
+    };
 
     return (
         <section className="py-8">
@@ -37,6 +49,7 @@ export function PopularProductsSection({ products }: PopularProductsSectionProps
                             key={product.id}
                             href={`/products/${product.id}`}
                             className="group bg-background"
+                            onMouseEnter={() => handlePrefetch(product.id)}
                         >
                             {/* Image */}
                             <div className="relative aspect-[4/5] w-full bg-secondary overflow-hidden">

@@ -1,30 +1,10 @@
 'use client';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { Auth0Provider } from '@auth0/nextjs-auth0/client';
 import { Toaster } from 'sonner';
-import { useState } from 'react';
-import { ApiError } from '@/lib/api/client';
 import { AuthInitializer } from '@/features/auth/components/AuthInitializer';
-
-/**
- * Determines if an error is retryable
- */
-function shouldRetry(failureCount: number, error: unknown): boolean {
-    // Don't retry after 3 attempts
-    if (failureCount >= 3) return false;
-
-    // Don't retry client errors (4xx) except 408 (timeout) and 429 (rate limit)
-    if (error instanceof ApiError) {
-        const status = parseInt(error.code, 10);
-        if (!isNaN(status) && status >= 400 && status < 500) {
-            return status === 408 || status === 429;
-        }
-    }
-
-    // Retry network errors and server errors
-    return true;
-}
+import { getQueryClient } from '@/lib/query/get-query-client';
 
 /**
  * Application Providers
@@ -35,25 +15,7 @@ function shouldRetry(failureCount: number, error: unknown): boolean {
  * - Toaster: Notification system
  */
 export function Providers({ children }: { children: React.ReactNode }) {
-    const [queryClient] = useState(
-        () =>
-            new QueryClient({
-                defaultOptions: {
-                    queries: {
-                        // With Next.js 14, by default, we want to avoid refetching immediately on the client
-                        // unless explicit. Adjust staleTime as needed.
-                        staleTime: 60 * 1000,
-                        retry: shouldRetry,
-                        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-                        refetchOnWindowFocus: false,
-                    },
-                    mutations: {
-                        retry: shouldRetry,
-                        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-                    },
-                },
-            })
-    );
+    const queryClient = getQueryClient();
 
     return (
         <Auth0Provider>

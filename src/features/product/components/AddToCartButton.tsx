@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { ShoppingCart, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAddToCart } from '@/features/cart/hooks/useCartMutations';
@@ -26,34 +25,22 @@ export function AddToCartButton({
     showText = true,
 }: AddToCartButtonProps) {
     const addToCartMutation = useAddToCart();
-    const [isAdding, setIsAdding] = useState(false);
 
     const handleAddToCart = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
 
-        if (isAdding) return;
+        if (addToCartMutation.isPending) return;
 
-        setIsAdding(true);
         try {
-            // For now, we use a fixed amount or the product's full price if needed.
-            // In Giftify, adding to cart might require specifying an amount if it's a funding.
-            // However, for a simple "Add to Cart" from product page, we might assume full or min amount.
-            // Let's check CartItemCreateRequest type if possible, but usually it needs fundingId.
-
-            // Wait, in Giftify, a user usually starts a funding or participates in one.
-            // If adding from product page, it might be "Start new funding".
-
             await addToCartMutation.mutateAsync({
-                wishItemId: productId, // Using wishItemId to start a new funding from product view
-                amount: 10000, // Default participation amount
+                wishItemId: productId,
+                amount: 10000,
             });
 
             toast.success('장바구니에 담겼습니다.');
         } catch (error: any) {
             toast.error(error?.message || '장바구니 담기에 실패했습니다.');
-        } finally {
-            setIsAdding(false);
         }
     };
 
@@ -63,14 +50,14 @@ export function AddToCartButton({
             size={size}
             className={cn('gap-2', className)}
             onClick={handleAddToCart}
-            disabled={isAdding}
+            disabled={addToCartMutation.isPending}
         >
-            {isAdding ? (
+            {addToCartMutation.isPending ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
                 <ShoppingCart className="h-5 w-5" />
             )}
-            {showText && (isAdding ? '담는 중...' : '장바구니')}
+            {showText && (addToCartMutation.isPending ? '담는 중...' : '장바구니')}
         </Button>
     );
 }
