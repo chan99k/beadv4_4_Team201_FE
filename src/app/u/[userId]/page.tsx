@@ -8,24 +8,30 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FundingCard } from '@/components/common/FundingCard';
 import { useProfile } from '@/features/profile/hooks/useProfile';
 import { useMyOrganizedFundings } from '@/features/funding/hooks/useFunding';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 
 export function UserHomeContent({ userId }: { userId: string }) {
+    const { user: auth0User } = useAuth();
     const { data: profile, isLoading: isProfileLoading } = useProfile();
     const { data: fundingsResponse, isLoading: isFundingsLoading } = useMyOrganizedFundings();
 
     const user = useMemo(() => {
         if (!profile) return null;
+        // 백엔드에서 아직 제공하지 않는 필드들은 기본값 사용
+        const profileAny = profile as any;
         return {
             id: profile.id.toString(),
             nickname: profile.nickname || 'Unknown',
-            description: "안녕하세요. 취향을 공유하는 펀딩을 만듭니다.",
-            avatarUrl: profile.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&q=80',
-            coverImageUrl: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1600&q=80',
-            followerCount: 0,
+            description: profileAny.description || "안녕하세요. 취향을 공유하는 펀딩을 만듭니다.",
+            // Auth0 picture를 우선 사용, 없으면 profile.avatarUrl, 그것도 없으면 기본 아바타
+            avatarUrl: auth0User?.picture || profile.avatarUrl || '/images/default-avatar.png',
+            // 커버 이미지는 아직 백엔드에서 제공하지 않으므로 기본값 사용
+            coverImageUrl: profileAny.coverImageUrl || 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1600&q=80',
+            followerCount: profileAny.followerCount || 0,
             isFollowing: false,
         };
-    }, [profile]);
+    }, [profile, auth0User]);
 
     const fundings = fundingsResponse?.items || [];
     
