@@ -239,6 +239,9 @@ function DesktopMainNav() {
             <Link href="/products" className="text-4xl font-extrabold tracking-tight hover:text-gray-600 transition-colors">
                 PRODUCT
             </Link>
+            <Link href="/explore" className="text-4xl font-extrabold tracking-tight hover:text-gray-600 transition-colors">
+                EXPLORE
+            </Link>
             <Link href="/curation/birthday-men" className="text-4xl font-extrabold tracking-tight hover:text-gray-600 transition-colors">
                 CURATION
             </Link>
