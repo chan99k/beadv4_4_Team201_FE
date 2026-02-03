@@ -27,12 +27,17 @@ export interface CartItem {
 
 /**
  * Request body for creating a cart item
- * Either fundingId (for existing funding) or wishItemId (for new funding) must be provided
+ * - For funding: provide fundingId or wishItemId with amount
+ * - For product: provide productId with quantity
  */
 export interface CartItemCreateRequest {
+    // Funding related
     fundingId?: string;
     wishItemId?: string;
-    amount: number;
+    amount?: number;
+    // Product related
+    productId?: string;
+    quantity?: number;
 }
 
 /**

@@ -236,7 +236,7 @@ function DesktopMainNav() {
             <Link href="/fundings" className="text-4xl font-extrabold tracking-tight hover:text-gray-600 transition-colors">
                 FUNDING
             </Link>
-            <Link href="/showcase/1" className="text-4xl font-extrabold tracking-tight hover:text-gray-600 transition-colors">
+            <Link href="/products" className="text-4xl font-extrabold tracking-tight hover:text-gray-600 transition-colors">
                 PRODUCT
             </Link>
             <Link href="/curation/birthday-men" className="text-4xl font-extrabold tracking-tight hover:text-gray-600 transition-colors">

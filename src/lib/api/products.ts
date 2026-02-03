@@ -12,9 +12,59 @@ import type {
 export type ProductsParams = ProductQueryParams;
 export type SearchProductsParams = ProductSearchParams;
 
+// 백엔드 API 응답 타입 (PageResponseProductDto)
+interface BackendProductResponse {
+  content: BackendProduct[];
+  pageNumber: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+  isFirst: boolean;
+  isLast: boolean;
+}
+
+interface BackendProduct {
+  id: number;
+  sellerNickName: string;
+  name: string;
+  description: string;
+  price: number;
+  createdAt: string;
+}
+
+// 백엔드 응답을 프론트엔드 타입으로 변환
+function mapBackendProduct(product: BackendProduct): Product {
+  return {
+    id: product.id.toString(),
+    name: product.name,
+    price: product.price,
+    imageUrl: '/images/placeholder-product.jpg', // 백엔드에 이미지 없음
+    status: 'ON_SALE',
+    brandName: product.sellerNickName,
+  };
+}
+
+function mapBackendResponse(response: BackendProductResponse): ProductListResponse {
+  const mappedProducts = response.content.map(mapBackendProduct);
+  return {
+    content: mappedProducts,
+    items: mappedProducts,
+    page: {
+      page: response.pageNumber,
+      size: response.pageSize,
+      totalElements: response.totalElements,
+      totalPages: response.totalPages,
+      hasNext: !response.isLast,
+      hasPrevious: !response.isFirst,
+    },
+  };
+}
+
 export async function getProducts(params?: ProductsParams): Promise<ProductListResponse> {
   const queryParams = new URLSearchParams();
-  if (params?.category) queryParams.append('category', params.category);
+  
+  // 백엔드 ProductSearchDto에 맞게 파라미터 매핑
+  if (params?.category) queryParams.append('keyword', params.category);
   if (params?.minPrice !== undefined) queryParams.append('minPrice', params.minPrice.toString());
   if (params?.maxPrice !== undefined) queryParams.append('maxPrice', params.maxPrice.toString());
   if (params?.sort) queryParams.append('sort', params.sort);
@@ -22,31 +72,58 @@ export async function getProducts(params?: ProductsParams): Promise<ProductListR
   if (params?.size !== undefined) queryParams.append('size', params.size.toString());
 
   const queryString = queryParams.toString();
-  const endpoint = queryString ? `/api/v2/products?${queryString}` : '/api/v2/products';
+  // 백엔드 엔드포인트: /api/products/search
+  const endpoint = queryString ? `/api/products/search?${queryString}` : '/api/products/search';
 
-  return apiClient.get<ProductListResponse>(endpoint);
+  const response = await apiClient.get<BackendProductResponse>(endpoint);
+  return mapBackendResponse(response);
 }
 
 export async function searchProducts(params: SearchProductsParams): Promise<ProductListResponse> {
   const queryParams = new URLSearchParams();
-  queryParams.append('q', params.q);
-  if (params.category) queryParams.append('category', params.category);
+  queryParams.append('keyword', params.q);
+  if (params.category) queryParams.append('keyword', params.category);
   if (params?.page !== undefined) queryParams.append('page', params.page.toString());
   if (params?.size !== undefined) queryParams.append('size', params.size.toString());
 
-  return apiClient.get<ProductListResponse>(`/api/v2/products/search?${queryParams.toString()}`);
+  const response = await apiClient.get<BackendProductResponse>(`/api/products/search?${queryParams.toString()}`);
+  return mapBackendResponse(response);
 }
 
 export async function getProduct(productId: string): Promise<ProductDetail> {
-  return apiClient.get<ProductDetail>(`/api/v2/products/${productId}`);
+  // 백엔드 엔드포인트: /api/products/{id}
+  const product = await apiClient.get<BackendProduct>(`/api/products/${productId}`);
+  
+  return {
+    id: product.id.toString(),
+    name: product.name,
+    price: product.price,
+    imageUrl: '/images/placeholder-product.jpg',
+    status: 'ON_SALE',
+    brandName: product.sellerNickName,
+    sellerId: '', // 백엔드에서 제공하지 않음
+    description: product.description,
+    images: [],
+    stock: 100, // 백엔드에서 제공하지 않음
+    category: 'GENERAL',
+    rating: 0,
+    reviewCount: 0,
+    salesCount: 0,
+    createdAt: product.createdAt,
+  };
 }
 
 export async function getPopularProducts(limit?: number): Promise<PopularProductsResponse> {
+  // 백엔드에 인기 상품 엔드포인트가 없으므로 일반 검색으로 대체
   const queryParams = new URLSearchParams();
-  if (limit !== undefined) queryParams.append('limit', limit.toString());
+  if (limit !== undefined) queryParams.append('size', limit.toString());
+  queryParams.append('sort', 'createdAt,desc'); // 최신순으로 대체
 
   const queryString = queryParams.toString();
-  const endpoint = queryString ? `/api/v2/products/popular?${queryString}` : '/api/v2/products/popular';
+  const endpoint = queryString ? `/api/products/search?${queryString}` : '/api/products/search';
 
-  return apiClient.get<PopularProductsResponse>(endpoint);
+  const response = await apiClient.get<BackendProductResponse>(endpoint);
+  return {
+    items: response.content.map(mapBackendProduct),
+  };
 }
