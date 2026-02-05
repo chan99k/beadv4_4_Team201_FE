@@ -28,7 +28,12 @@ export const queryKeys = {
   wishlist: (memberId: string) => ['wishlists', memberId] as const,
 
   // Products
-  products: (params?: any) => ['products', params] as const,
+  products: Object.assign(
+      (params?: any) => ['products', params] as const,
+      {
+          popular: () => ['products', 'popular'] as const,
+      }
+  ),
   product: (id: string) => ['products', id] as const,
 
   // Members

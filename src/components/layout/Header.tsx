@@ -186,9 +186,14 @@ export function Header({
 
 function DesktopTopNav() {
     const { user } = useAuth();
+    // Only fetch cart/wallet if user is logged in. 
+    // The hooks themselves (useCart, useWallet) already have `enabled: !!user` checks,
+    // so `data` will be undefined if not logged in.
     const { data: cart } = useCart();
     const { data: wallet } = useWallet();
-    const cartCount = cart?.items.length || 0;
+    
+    // Safety check: only show count if user exists
+    const cartCount = user && cart ? cart.items.length : 0;
 
     return (
         <div className="flex items-center gap-6 text-[10px] font-medium tracking-tight text-gray-900">
@@ -233,17 +238,11 @@ function DesktopTopNav() {
 function DesktopMainNav() {
     return (
         <nav className="flex items-center gap-10">
-            <Link href="/fundings" className="text-4xl font-extrabold tracking-tight hover:text-gray-600 transition-colors">
-                FUNDING
-            </Link>
             <Link href="/products" className="text-4xl font-extrabold tracking-tight hover:text-gray-600 transition-colors">
                 PRODUCT
             </Link>
             <Link href="/explore" className="text-4xl font-extrabold tracking-tight hover:text-gray-600 transition-colors">
-                EXPLORE
-            </Link>
-            <Link href="/curation/birthday-men" className="text-4xl font-extrabold tracking-tight hover:text-gray-600 transition-colors">
-                CURATION
+                DISCOVER
             </Link>
             <Link href="/reviews" className="text-4xl font-extrabold tracking-tight hover:text-gray-600 transition-colors">
                 STORY

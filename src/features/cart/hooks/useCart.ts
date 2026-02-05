@@ -16,6 +16,8 @@ export function useCart() {
     queryKey: queryKeys.cart,
     queryFn: getCart,
     enabled: !!user,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes
   });
 
   const addToCart = useCallback(async (params: { productId: string; quantity?: number }) => {

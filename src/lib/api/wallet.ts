@@ -1,8 +1,6 @@
 import { apiClient } from './client';
 import type {
   Wallet,
-  WalletChargeRequest,
-  WalletChargeResponse,
   WalletWithdrawRequest,
   WalletWithdrawResponse,
   TransactionType,
@@ -18,9 +16,7 @@ export async function getWallet(): Promise<Wallet> {
   return apiClient.get<Wallet>('/api/v2/wallet/balance');
 }
 
-export async function chargeWallet(data: WalletChargeRequest): Promise<WalletChargeResponse> {
-  return apiClient.post<WalletChargeResponse>('/api/v2/wallet/charge', data);
-}
+
 
 export async function getWalletHistory(params?: WalletHistoryParams): Promise<WalletHistoryResponse> {
   const queryParams = new URLSearchParams();

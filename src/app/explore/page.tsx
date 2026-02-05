@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
 import { AppShell } from '@/components/layout/AppShell';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -11,17 +11,27 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, Gift, Users, Sparkles, ArrowRight } from 'lucide-react';
+import { Search, Gift, Users, Sparkles, ArrowRight, TrendingUp } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { useWishlist } from '@/features/wishlist/hooks/useWishlist';
+import { getFundings } from '@/lib/api/fundings';
+import { FundingCard } from '@/components/common/FundingCard';
 import { toast } from 'sonner';
 
-export default function ExplorePage() {
+export default function DiscoverPage() {
     const router = useRouter();
     const [searchId, setSearchId] = useState('');
     const [searchedId, setSearchedId] = useState<string | null>(null);
     
-    const { data: wishlist, isLoading, error } = useWishlist(searchedId || '');
+    const { data: searchedWishlist, isLoading: isSearchLoading, error: searchError } = useWishlist(searchedId || '');
+
+    // 실시간 인기 펀딩 (DISCOVER의 새로운 핵심 요소)
+    const { data: fundingsData, isLoading: isFundingsLoading } = useQuery({
+        queryKey: ['trend-fundings'],
+        queryFn: () => getFundings({ size: 4 }),
+    });
+
+    const trendFundings = fundingsData?.items || [];
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -36,164 +46,176 @@ export default function ExplorePage() {
         router.push(`/wishlist/${memberId}`);
     };
 
-    // 샘플 회원 목록 (실제 환경에서는 API로 가져와야 함)
-    const sampleMembers = [
-        { id: '1', nickname: '회원 1', description: '첫 번째 회원' },
-        { id: '2', nickname: '회원 2', description: '두 번째 회원' },
-        { id: '3', nickname: '회원 3', description: '세 번째 회원' },
-        { id: '4', nickname: '회원 4', description: '네 번째 회원' },
-        { id: '5', nickname: '회원 5', description: '다섯 번째 회원' },
-    ];
-
     return (
-        <AppShell>
-            <div className="max-w-screen-xl mx-auto px-4 md:px-8 py-8">
-                {/* Hero Section */}
-                <div className="text-center mb-12">
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center mx-auto mb-6">
-                        <Users className="w-10 h-10 text-white" />
-                    </div>
-                    <h1 className="text-3xl md:text-4xl font-bold mb-4">위시리스트 탐색</h1>
-                    <p className="text-muted-foreground max-w-md mx-auto">
-                        다른 사람들의 위시리스트를 확인하고 선물 펀딩에 참여해보세요
+        <AppShell headerTitle="DISCOVER" headerVariant="main">
+            <div className="max-w-screen-xl mx-auto px-6 md:px-12 py-12 md:py-20">
+                {/* Hero / Search Section */}
+                <div className="max-w-2xl mx-auto text-center mb-20">
+                    <h1 className="text-4xl md:text-5xl font-black tracking-tighter mb-6">
+                        Find Someone, <br />
+                        Discover Joy
+                    </h1>
+                    <p className="text-muted-foreground mb-10 text-sm md:text-base">
+                        친구의 아이디를 검색하여 위시리스트를 확인하거나, <br />
+                        지금 활발하게 진행 중인 펀딩을 탐색해보세요.
                     </p>
-                </div>
-
-                {/* Search Section */}
-                <div className="max-w-md mx-auto mb-12">
-                    <form onSubmit={handleSearch} className="flex gap-2">
+                    
+                    <form onSubmit={handleSearch} className="relative max-w-md mx-auto">
                         <Input
                             type="text"
                             placeholder="회원 ID를 입력하세요 (예: 1, 2, 3...)"
                             value={searchId}
                             onChange={(e) => setSearchId(e.target.value)}
-                            className="flex-1"
+                            className="h-14 pl-12 pr-24 border-black border-2 rounded-none focus-visible:ring-0 text-sm font-bold"
                         />
-                        <Button type="submit">
-                            <Search className="w-4 h-4 mr-2" />
-                            검색
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-black" />
+                        <Button 
+                            type="submit" 
+                            className="absolute right-1 top-1 bottom-1 px-6 rounded-none bg-black text-white hover:bg-gray-800"
+                        >
+                            SEARCH
                         </Button>
                     </form>
                 </div>
 
-                {/* Search Result */}
+                {/* Search Result (Dynamic) */}
                 {searchedId && (
-                    <div className="mb-12">
-                        <h2 className="text-lg font-bold mb-4">검색 결과</h2>
+                    <div className="mb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="flex items-center gap-2 mb-6">
+                            <Users className="w-5 h-5" />
+                            <h2 className="text-lg font-black tracking-tight">회원 검색 결과</h2>
+                        </div>
                         
-                        {isLoading && (
-                            <Card className="p-6">
-                                <div className="flex items-center gap-4">
-                                    <Skeleton className="w-16 h-16 rounded-full" />
-                                    <div className="flex-1">
-                                        <Skeleton className="h-5 w-32 mb-2" />
-                                        <Skeleton className="h-4 w-48" />
+                        {isSearchLoading ? (
+                            <Card className="p-8 border-2 border-black rounded-none">
+                                <div className="flex items-center gap-6">
+                                    <Skeleton className="w-20 h-20 rounded-full" />
+                                    <div className="flex-1 space-y-2">
+                                        <Skeleton className="h-6 w-40" />
+                                        <Skeleton className="h-4 w-60" />
                                     </div>
                                 </div>
                             </Card>
-                        )}
-
-                        {error && (
-                            <Card className="p-6 text-center">
-                                <p className="text-muted-foreground">
-                                    회원 ID "{searchedId}"의 위시리스트를 찾을 수 없습니다
-                                </p>
-                                <p className="text-sm text-muted-foreground mt-2">
-                                    비공개 위시리스트이거나 존재하지 않는 회원일 수 있습니다
-                                </p>
+                        ) : searchError ? (
+                            <Card className="p-12 text-center border-2 border-dashed border-gray-200 rounded-none bg-gray-50">
+                                <p className="font-bold text-gray-400">"{searchedId}" 회원을 찾을 수 없습니다.</p>
+                                <p className="text-xs text-muted-foreground mt-1">아이디를 다시 확인해주세요.</p>
                             </Card>
-                        )}
-
-                        {wishlist && !isLoading && (
-                            <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => handleViewWishlist(searchedId)}>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">
-                                            {wishlist.member.nickname?.charAt(0) || '?'}
+                        ) : searchedWishlist && (
+                            <Card 
+                                className="p-8 border-2 border-black rounded-none hover:bg-gray-50 transition-colors cursor-pointer group"
+                                onClick={() => handleViewWishlist(searchedId)}
+                            >
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                    <div className="flex items-center gap-6">
+                                        <div className="w-20 h-20 bg-black flex items-center justify-center text-white text-3xl font-black">
+                                            {searchedWishlist.member.nickname?.charAt(0) || '?'}
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-bold">{wishlist.member.nickname}님의 위시리스트</h3>
-                                            <p className="text-muted-foreground">
-                                                {wishlist.itemCount}개의 아이템
+                                            <h3 className="text-xl font-black">{searchedWishlist.member.nickname}님의 위시리스트</h3>
+                                            <p className="text-muted-foreground text-sm mt-1">
+                                                {searchedWishlist.itemCount}개의 위시 아이템이 기다리고 있어요.
                                             </p>
                                         </div>
                                     </div>
-                                    <Button>
+                                    <Button className="border-2 border-black bg-transparent text-black hover:bg-black hover:text-white rounded-none font-bold py-6 px-10 transition-all">
                                         보러가기
-                                        <ArrowRight className="w-4 h-4 ml-2" />
+                                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                                     </Button>
                                 </div>
-
-                                {/* Preview Items */}
-                                {wishlist.items.length > 0 && (
-                                    <div className="mt-4 pt-4 border-t">
-                                        <p className="text-sm text-muted-foreground mb-3">위시 아이템 미리보기</p>
-                                        <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
-                                            {wishlist.items.slice(0, 6).map((item) => (
-                                                <div key={item.id} className="relative aspect-square bg-gray-100 rounded overflow-hidden">
-                                                    <Image
-                                                        src={item.product.imageUrl || '/images/placeholder-product.jpg'}
-                                                        alt={item.product.name}
-                                                        fill
-                                                        className="object-cover"
-                                                    />
-                                                    {item.status === 'IN_FUNDING' && (
-                                                        <Badge className="absolute top-1 right-1 bg-orange-500 text-[10px] px-1">펀딩중</Badge>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
                             </Card>
                         )}
                     </div>
                 )}
 
-                {/* Sample Members (Quick Access) */}
-                <div>
-                    <div className="flex items-center gap-2 mb-4">
-                        <Sparkles className="w-5 h-5 text-yellow-500" />
-                        <h2 className="text-lg font-bold">빠른 접근</h2>
+                {/* Trending Fundings (The 'Discover' core) */}
+                <div className="mb-20">
+                    <div className="flex items-end justify-between mb-8">
+                        <div>
+                            <div className="flex items-center gap-2 mb-2">
+                                <TrendingUp className="w-4 h-4 text-orange-500" />
+                                <span className="text-[10px] font-black tracking-widest text-orange-500 uppercase">Trending Now</span>
+                            </div>
+                            <h2 className="text-2xl md:text-3xl font-black tracking-tighter">실시간 인기 펀딩</h2>
+                        </div>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-6">
-                        아래 회원들의 위시리스트를 바로 확인해보세요
-                    </p>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                        {sampleMembers.map((member) => (
-                            <Card 
-                                key={member.id} 
-                                className="p-4 hover:shadow-lg transition-shadow cursor-pointer text-center"
-                                onClick={() => {
-                                    setSearchId(member.id);
-                                    setSearchedId(member.id);
-                                }}
-                            >
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center text-white text-lg font-bold mx-auto mb-3">
-                                    {member.id}
+                    {isFundingsLoading ? (
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
+                            {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="space-y-4">
+                                    <Skeleton className="aspect-[4/5] w-full rounded-none" />
+                                    <Skeleton className="h-4 w-3/4" />
+                                    <Skeleton className="h-3 w-1/2" />
                                 </div>
-                                <h3 className="font-medium text-sm">{member.nickname}</h3>
-                                <p className="text-xs text-muted-foreground mt-1">{member.description}</p>
-                                <Button variant="ghost" size="sm" className="mt-3 w-full">
-                                    <Gift className="w-4 h-4 mr-1" />
-                                    위시리스트 보기
-                                </Button>
-                            </Card>
-                        ))}
+                            ))}
+                        </div>
+                    ) : trendFundings.length > 0 ? (
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
+                            {trendFundings.map((funding) => (
+                                <FundingCard
+                                    key={funding.id}
+                                    funding={{
+                                        ...funding,
+                                        recipient: {
+                                            nickname: funding.recipient?.nickname || null,
+                                            avatarUrl: funding.recipient?.avatarUrl || null
+                                        }
+                                    }}
+                                    onClick={() => router.push(`/fundings/${funding.id}`)}
+                                    variant="carousel"
+                                    className="w-full"
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="py-20 text-center border-2 border-dashed border-gray-100 bg-gray-50/50">
+                            <p className="text-sm font-bold text-gray-300">현재 활성화된 펀딩이 없습니다.</p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Quick Shortcuts */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="p-10 bg-black text-white group cursor-pointer overflow-hidden relative">
+                        <div className="relative z-10">
+                            <h3 className="text-2xl font-black mb-2">My Wishlist</h3>
+                            <p className="text-gray-400 text-sm mb-6">내가 받고 싶은 선물을 등록해보세요.</p>
+                            <Button 
+                                variant="outline" 
+                                className="border-white text-white hover:bg-white hover:text-black rounded-none font-bold"
+                                onClick={() => router.push('/wishlist')}
+                            >
+                                GO TO WISH
+                            </Button>
+                        </div>
+                        <Gift className="absolute -right-8 -bottom-8 w-40 h-40 text-gray-800 opacity-50 group-hover:scale-110 transition-transform duration-700" />
+                    </div>
+                    
+                    <div className="p-10 bg-gray-100 group cursor-pointer overflow-hidden relative border-2 border-transparent hover:border-black transition-all">
+                        <div className="relative z-10">
+                            <h3 className="text-2xl font-black mb-2">Participation</h3>
+                            <p className="text-muted-foreground text-sm mb-6">내가 참여한 모든 펀딩을 확인하세요.</p>
+                            <Button 
+                                className="bg-black text-white hover:bg-gray-800 rounded-none font-bold"
+                                onClick={() => router.push('/fundings/participated')}
+                            >
+                                VIEW MY FUNDINGS
+                            </Button>
+                        </div>
+                        <Users className="absolute -right-8 -bottom-8 w-40 h-40 text-gray-200 group-hover:scale-110 transition-transform duration-700" />
                     </div>
                 </div>
 
-                {/* Help Section */}
-                <div className="mt-16 text-center p-8 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl">
-                    <h3 className="text-lg font-bold mb-2">💡 TIP</h3>
-                    <p className="text-muted-foreground">
-                        회원 ID는 백엔드 데이터베이스에서 확인할 수 있습니다.<br />
-                        <code className="bg-gray-100 px-2 py-1 rounded text-sm">SELECT id, nickname FROM member;</code>
-                    </p>
+                {/* Bottom Tip */}
+                <div className="mt-20 pt-10 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between text-[11px] text-muted-foreground uppercase tracking-widest gap-4">
+                    <span>© 2026 GIFTIFY. ALL RIGHTS RESERVED.</span>
+                    <div className="flex gap-6">
+                        <span className="cursor-help" title="다른 사람의 아이디로 검색 가능합니다.">MEMBER ID SEARCH TIPS</span>
+                        <span className="cursor-help" title="실시간으로 집계되는 펀딩 데이터입니다.">LIVE DATA STATUS</span>
+                    </div>
                 </div>
             </div>
-
             <Footer />
         </AppShell>
     );

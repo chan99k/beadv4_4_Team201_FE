@@ -9,11 +9,11 @@ import type {
 } from '@/types/order';
 
 export async function createOrder(data?: OrderCreateRequest): Promise<Order> {
-  return apiClient.post<Order>('/api/orders', data || {});
+  return apiClient.post<Order>('/api/v2/orders', data || {});
 }
 
 export async function getOrder(orderId: string): Promise<OrderDetail> {
-  return apiClient.get<OrderDetail>(`/api/orders/${orderId}`);
+  return apiClient.get<OrderDetail>(`/api/v2/orders/${orderId}`);
 }
 
 export async function getOrders(params?: PageParams): Promise<OrderListResponse> {
@@ -22,7 +22,7 @@ export async function getOrders(params?: PageParams): Promise<OrderListResponse>
   if (params?.size !== undefined) queryParams.append('size', params.size.toString());
 
   const queryString = queryParams.toString();
-  const endpoint = queryString ? `/api/orders?${queryString}` : '/api/orders';
+  const endpoint = queryString ? `/api/v2/orders?${queryString}` : '/api/v2/orders';
 
   return apiClient.get<OrderListResponse>(endpoint);
 }

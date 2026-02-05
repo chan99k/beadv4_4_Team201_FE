@@ -30,34 +30,35 @@ export function ProductCard({ product, onClick, className }: ProductCardProps) {
   };
 
   return (
-    <Card
+    <div
       className={cn(
-        'overflow-hidden cursor-pointer transition-shadow hover:shadow-lg',
+        'group cursor-pointer flex flex-col',
         className
       )}
       onClick={onClick}
       onMouseEnter={handleMouseEnter}
     >
       {/* Product Image */}
-      <div className="relative aspect-square w-full overflow-hidden bg-gray-100">
+      <div className="relative aspect-square w-full overflow-hidden bg-gray-100 mb-3">
         <Image
-          src={product.imageUrl || '/placeholder-product.png'}
+          src={product.imageUrl || '/images/placeholder-product.jpg'}
           alt={product.name}
           fill
-          className="object-cover"
-          sizes="(max-width: 640px) 50vw, 33vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 15vw"
         />
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300" />
       </div>
 
       {/* Product Info */}
-      <div className="p-4 space-y-2">
-        <h3 className="font-semibold text-sm line-clamp-2 leading-5">
+      <div className="px-1 space-y-1">
+        <h3 className="text-xs font-medium text-gray-900 line-clamp-2 leading-tight group-hover:opacity-60 transition-opacity">
           {product.name}
         </h3>
-        <p className="text-lg font-bold tabular-nums">
-          ₩{product.price.toLocaleString()}
+        <p className="text-sm font-black tracking-tighter tabular-nums mt-1">
+          {product.price.toLocaleString()}원
         </p>
       </div>
-    </Card>
+    </div>
   );
 }

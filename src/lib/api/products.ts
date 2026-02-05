@@ -72,8 +72,8 @@ export async function getProducts(params?: ProductsParams): Promise<ProductListR
   if (params?.size !== undefined) queryParams.append('size', params.size.toString());
 
   const queryString = queryParams.toString();
-  // 백엔드 엔드포인트: /api/products/search
-  const endpoint = queryString ? `/api/products/search?${queryString}` : '/api/products/search';
+  // 백엔드 엔드포인트: /api/v2/products/search
+  const endpoint = queryString ? `/api/v2/products/search?${queryString}` : '/api/v2/products/search';
 
   const response = await apiClient.get<BackendProductResponse>(endpoint);
   return mapBackendResponse(response);
@@ -86,13 +86,13 @@ export async function searchProducts(params: SearchProductsParams): Promise<Prod
   if (params?.page !== undefined) queryParams.append('page', params.page.toString());
   if (params?.size !== undefined) queryParams.append('size', params.size.toString());
 
-  const response = await apiClient.get<BackendProductResponse>(`/api/products/search?${queryParams.toString()}`);
+  const response = await apiClient.get<BackendProductResponse>(`/api/v2/products/search?${queryParams.toString()}`);
   return mapBackendResponse(response);
 }
 
 export async function getProduct(productId: string): Promise<ProductDetail> {
-  // 백엔드 엔드포인트: /api/products/{id}
-  const product = await apiClient.get<BackendProduct>(`/api/products/${productId}`);
+  // 백엔드 엔드포인트: /api/v2/products/{id}
+  const product = await apiClient.get<BackendProduct>(`/api/v2/products/${productId}`);
   
   return {
     id: product.id.toString(),
@@ -120,7 +120,7 @@ export async function getPopularProducts(limit?: number): Promise<PopularProduct
   queryParams.append('sort', 'createdAt,desc'); // 최신순으로 대체
 
   const queryString = queryParams.toString();
-  const endpoint = queryString ? `/api/products/search?${queryString}` : '/api/products/search';
+  const endpoint = queryString ? `/api/v2/products/search?${queryString}` : '/api/v2/products/search';
 
   const response = await apiClient.get<BackendProductResponse>(endpoint);
   return {

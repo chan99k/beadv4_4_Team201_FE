@@ -43,36 +43,39 @@ export function PopularProductsSection({ products }: PopularProductsSectionProps
                 </div>
 
                 {/* Product Grid - Editorial Style */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-px bg-border">
+                <div className="px-8 flex flex-col gap-px">
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-px bg-border">
                     {displayProducts.map((product) => (
                         <Link
                             key={product.id}
                             href={`/products/${product.id}`}
-                            className="group bg-background"
+                            className="group bg-white"
                             onMouseEnter={() => handlePrefetch(product.id)}
                         >
                             {/* Image */}
-                            <div className="relative aspect-[4/5] w-full bg-secondary overflow-hidden">
+                            <div className="relative aspect-[4/5] w-full overflow-hidden">
                                 <Image
                                     src={product.imageUrl}
                                     alt={product.name}
                                     fill
                                     className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                    sizes="(max-width: 768px) 50vw, 20vw"
+                                    sizes="(max-width: 768px) 50vw, 15vw"
                                 />
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300" />
                             </div>
 
                             {/* Info */}
-                            <div className="p-4">
-                                <h3 className="text-sm font-medium line-clamp-2 min-h-[2.5rem] group-hover:opacity-60 transition-opacity">
+                            <div className="p-3">
+                                <h3 className="text-[11px] font-medium line-clamp-2 min-h-[2rem] group-hover:opacity-60 transition-opacity leading-tight">
                                     {product.name}
                                 </h3>
-                                <p className="text-sm font-semibold mt-2">
-                                    ₩{product.price.toLocaleString()}
+                                <p className="text-xs font-black mt-1 tracking-tight">
+                                    {product.price.toLocaleString()}원
                                 </p>
                             </div>
                         </Link>
                     ))}
+                  </div>
                 </div>
             </div>
         </section>

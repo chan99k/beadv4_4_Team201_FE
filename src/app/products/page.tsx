@@ -104,181 +104,145 @@ function ProductSearchContent() {
 
   return (
     <AppShell headerVariant="main">
-      <div className="flex min-h-screen">
-        {/* Sidebar - Desktop */}
-        <aside className="hidden lg:block w-48 flex-shrink-0 border-r border-border p-6 sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto">
-          {/* Search Query Display */}
-          {searchQuery && (
-            <div className="mb-8">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">"{searchQuery}"</span>
-                <button
-                  onClick={clearSearch}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-3 w-3" strokeWidth={1.5} />
+      <div className="max-w-screen-2xl mx-auto px-8">
+        {/* Curated Header Section */}
+        {!searchQuery && (
+          <div className="py-12 border-b border-gray-100 mb-8">
+            <h1 className="text-4xl font-black tracking-tighter mb-4 uppercase">Product Curation</h1>
+            <p className="text-sm text-gray-500 max-w-lg leading-relaxed">
+              취향을 담은 특별한 발견. 기프티파이가 제안하는 테마별 상품들을 탐색하고 
+              당신만의 위시리스트를 완성해보세요.
+            </p>
+            
+            {/* Theme Tags */}
+            <div className="flex gap-3 mt-8 overflow-x-auto no-scrollbar pb-2">
+              {['NEW', 'BEST', 'GIFT GUIDE', 'OFFICE', 'TECH', 'HOME'].map(tag => (
+                <button key={tag} className="px-5 py-2 border border-black text-[10px] font-bold hover:bg-black hover:text-white transition-colors">
+                  {tag}
                 </button>
-              </div>
-            </div>
-          )}
-
-          {/* Categories */}
-          <div className="mb-8">
-            <h3 className="text-xs font-semibold text-muted-foreground mb-4 uppercase tracking-wider">
-              카테고리
-            </h3>
-            <ul className="space-y-2">
-              {CATEGORIES.map((cat) => (
-                <li key={cat.value}>
-                  <button
-                    onClick={() => updateParams('category', cat.value)}
-                    className={cn(
-                      'text-sm transition-opacity hover:opacity-60',
-                      category === cat.value ? 'font-medium' : 'text-muted-foreground'
-                    )}
-                  >
-                    {cat.label}
-                  </button>
-                </li>
               ))}
-            </ul>
+            </div>
           </div>
+        )}
 
-          {/* Price Range */}
-          <div className="mb-8">
-            <h3 className="text-xs font-semibold text-muted-foreground mb-4 uppercase tracking-wider">
-              가격
-            </h3>
-            <ul className="space-y-2">
-              <li>
-                <button
-                  onClick={() => {
-                    updateParams('minPrice', '');
-                    updateParams('maxPrice', '');
-                  }}
-                  className={cn(
-                    'text-sm transition-opacity hover:opacity-60',
-                    !minPrice && !maxPrice ? 'font-medium' : 'text-muted-foreground'
-                  )}
-                >
-                  전체
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => {
-                    updateParams('maxPrice', '50000');
-                    updateParams('minPrice', '');
-                  }}
-                  className={cn(
-                    'text-sm transition-opacity hover:opacity-60',
-                    maxPrice === 50000 ? 'font-medium' : 'text-muted-foreground'
-                  )}
-                >
-                  ~5만원
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => {
-                    updateParams('minPrice', '50000');
-                    updateParams('maxPrice', '100000');
-                  }}
-                  className={cn(
-                    'text-sm transition-opacity hover:opacity-60',
-                    minPrice === 50000 && maxPrice === 100000 ? 'font-medium' : 'text-muted-foreground'
-                  )}
-                >
-                  5~10만원
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => {
-                    updateParams('minPrice', '100000');
-                    updateParams('maxPrice', '');
-                  }}
-                  className={cn(
-                    'text-sm transition-opacity hover:opacity-60',
-                    minPrice === 100000 && !maxPrice ? 'font-medium' : 'text-muted-foreground'
-                  )}
-                >
-                  10만원~
-                </button>
-              </li>
-            </ul>
-          </div>
-        </aside>
+        <div className="flex min-h-screen gap-12">
+          {/* Sidebar - Desktop */}
+          <aside className="hidden lg:block w-40 flex-shrink-0 pt-4 sticky top-40 h-[calc(100vh-10rem)] overflow-y-auto no-scrollbar">
+            {/* Categories */}
+            <div className="mb-12">
+              <h3 className="text-[10px] font-black text-black mb-6 uppercase tracking-widest">
+                Category
+              </h3>
+              <ul className="space-y-3">
+                {CATEGORIES.map((cat) => (
+                  <li key={cat.value}>
+                    <button
+                      onClick={() => updateParams('category', cat.value)}
+                      className={cn(
+                        'text-xs transition-opacity hover:opacity-60 text-left w-full',
+                        category === cat.value ? 'font-black text-black underline underline-offset-4' : 'text-gray-400 font-medium'
+                      )}
+                    >
+                      {cat.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-        {/* Main Content */}
-        <main className="flex-1 min-w-0">
-          {/* Header */}
-          <div className="sticky top-14 bg-background z-10 border-b border-border px-4 lg:px-8 py-4">
-            <div className="flex items-center justify-between">
+            {/* Price Range */}
+            <div className="mb-12">
+              <h3 className="text-[10px] font-black text-black mb-6 uppercase tracking-widest">
+                Price
+              </h3>
+              <ul className="space-y-3">
+                {[
+                  { label: '전체', min: '', max: '' },
+                  { label: '~5만원', min: '', max: '50000' },
+                  { label: '5~10만원', min: '50000', max: '100000' },
+                  { label: '10만원~', min: '100000', max: '' },
+                ].map((range) => {
+                  const isActive = range.label === '전체' 
+                    ? (!minPrice && !maxPrice)
+                    : (range.min === (minPrice?.toString() || '') && range.max === (maxPrice?.toString() || ''));
+                  
+                  return (
+                    <li key={range.label}>
+                      <button
+                        onClick={() => {
+                          updateParams('minPrice', range.min);
+                          updateParams('maxPrice', range.max);
+                        }}
+                        className={cn(
+                          'text-xs transition-opacity hover:opacity-60 text-left w-full',
+                          isActive ? 'font-black text-black underline underline-offset-4' : 'text-gray-400 font-medium'
+                        )}
+                      >
+                        {range.label}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </aside>
+
+          {/* Main Content */}
+          <main className="flex-1 min-w-0 pb-20">
+            {/* Toolbar Area */}
+            <div className="flex items-center justify-between mb-8 pt-4">
               <div className="flex items-center gap-4">
+                <span className="text-[10px] font-black tracking-widest">
+                  {totalElements.toLocaleString()} ITEMS
+                </span>
                 {searchQuery && (
-                  <div className="lg:hidden flex items-center gap-2">
-                    <span className="text-sm">"{searchQuery}"</span>
+                  <div className="flex items-center gap-2 bg-black text-white px-3 py-1 text-[10px] font-bold">
+                    <span>"{searchQuery}"</span>
                     <button onClick={clearSearch}>
-                      <X className="h-3 w-3" strokeWidth={1.5} />
+                      <X className="h-3 w-3" />
                     </button>
                   </div>
                 )}
-                <span className="text-sm text-muted-foreground">
-                  {totalElements.toLocaleString()}개
-                </span>
               </div>
 
               {/* Sort Options */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-6">
                 {SORT_OPTIONS.map((option) => (
                   <button
                     key={option.value}
                     onClick={() => updateParams('sort', option.value)}
                     className={cn(
-                      'text-xs transition-opacity hover:opacity-60 hidden sm:block',
-                      sort === option.value ? 'font-medium' : 'text-muted-foreground'
+                      'text-[10px] font-bold tracking-tight transition-colors hidden sm:block',
+                      sort === option.value ? 'text-black' : 'text-gray-300 hover:text-gray-500'
                     )}
                   >
                     {option.label}
                   </button>
                 ))}
-
-                {/* Mobile Sort */}
-                <select
-                  value={sort}
-                  onChange={(e) => updateParams('sort', e.target.value)}
-                  className="sm:hidden text-xs bg-transparent border-0 focus:ring-0"
-                >
-                  {SORT_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
               </div>
             </div>
-          </div>
 
-          {/* Product Grid */}
-          <div className="p-4 lg:p-8">
+            {/* Product Grid */}
             <ProductList products={products} isLoading={isLoading} />
 
             {/* Load More */}
-            <div ref={loadMoreRef} className="py-8 flex justify-center">
+            <div ref={loadMoreRef} className="py-20 flex justify-center">
               {isFetchingNextPage ? (
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" strokeWidth={1.5} />
+                <div className="flex items-center gap-2 text-[10px] font-bold">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  LOADING...
+                </div>
               ) : hasNextPage ? (
                 <div className="h-4" />
               ) : products.length > 0 ? (
-                <p className="text-xs text-muted-foreground">모든 상품을 불러왔습니다</p>
+                <p className="text-[10px] font-black tracking-widest text-gray-300">END OF PRODUCTS</p>
               ) : null}
             </div>
 
             {/* Footer */}
             <Footer />
-          </div>
-        </main>
+          </main>
+        </div>
       </div>
     </AppShell>
   );

@@ -8,6 +8,8 @@ import {
 } from '@/lib/api/fundings';
 import type { FundingQueryParams } from '@/types/funding';
 
+import { useAuth } from '@/features/auth/hooks/useAuth';
+
 /**
  * Hook to fetch a specific funding detail
  * @param fundingId - The ID of the funding to fetch
@@ -25,9 +27,11 @@ export function useFunding(fundingId: string) {
  * @param params - Query parameters (status, page, size)
  */
 export function useMyOrganizedFundings(params?: FundingQueryParams) {
+  const { user } = useAuth();
   return useQuery({
     queryKey: queryKeys.myOrganizedFundings,
     queryFn: () => getMyOrganizedFundings(params),
+    enabled: !!user,
   });
 }
 
@@ -36,9 +40,11 @@ export function useMyOrganizedFundings(params?: FundingQueryParams) {
  * @param params - Query parameters (status, page, size)
  */
 export function useMyParticipatedFundings(params?: FundingQueryParams) {
+  const { user } = useAuth();
   return useQuery({
     queryKey: queryKeys.myParticipatedFundings,
     queryFn: () => getMyParticipatedFundings(params),
+    enabled: !!user,
   });
 }
 
@@ -47,8 +53,10 @@ export function useMyParticipatedFundings(params?: FundingQueryParams) {
  * @param params - Query parameters (status, page, size)
  */
 export function useMyReceivedFundings(params?: FundingQueryParams) {
+  const { user } = useAuth();
   return useQuery({
     queryKey: queryKeys.myReceivedFundings,
     queryFn: () => getMyReceivedFundings(params),
+    enabled: !!user,
   });
 }

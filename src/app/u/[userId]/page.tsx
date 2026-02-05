@@ -63,7 +63,10 @@ export function UserHomeContent({ userId }: { userId: string }) {
             headerVariant="main"
             showBottomNav={false}
         >
-            <UserHomeHero user={user} />
+            <UserHomeHero 
+                user={user} 
+                isMe={userId === 'me' || (auth0User?.sub === user.id)}
+            />
 
             <div className="max-w-screen-2xl mx-auto px-8 pb-24">
                 <Tabs defaultValue="ongoing" className="w-full">
