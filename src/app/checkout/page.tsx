@@ -67,8 +67,20 @@ export default function CheckoutPage() {
             toast.success('결제가 완료되었습니다!');
             router.push(`/checkout/complete?orderId=${order.id}`);
         } catch (error: any) {
-            const errorMessage = error?.message || '결제 중 오류가 발생했습니다.';
-            toast.error(errorMessage);
+            const errorCode = error?.code;
+
+            switch (errorCode) {
+                case 'INSUFFICIENT_BALANCE':
+                    toast.error('잔액이 부족합니다. 지갑을 충전해주세요.');
+                    router.push('/wallet/charge');
+                    break;
+                case 'MISSING_IDEMPOTENCY_KEY':
+                    console.error('Idempotency key missing - this is a frontend bug');
+                    toast.error('주문 처리 중 오류가 발생했습니다.');
+                    break;
+                default:
+                    toast.error(error?.message || '결제 중 오류가 발생했습니다. 다시 시도해주세요.');
+            }
         } finally {
             setIsProcessing(false);
         }

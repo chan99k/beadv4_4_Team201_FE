@@ -38,12 +38,21 @@ async function proxyRequest(req: NextRequest, path: string[], method: string) {
     const pathString = path.join('/');
     const url = `${API_URL}/${pathString}${req.nextUrl.search}`;
 
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-    };
+    console.log(`[Proxy] Forwarding ${method} request to: ${url}`);
+
+    const headers: HeadersInit = {};
+    if (!['GET', 'HEAD'].includes(method)) {
+      headers['Content-Type'] = 'application/json';
+    }
 
     if (accessToken) {
       headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+
+    // Forward Idempotency-Key header if present
+    const idempotencyKey = req.headers.get('Idempotency-Key');
+    if (idempotencyKey) {
+      headers['Idempotency-Key'] = idempotencyKey;
     }
 
     const body = ['GET', 'HEAD'].includes(method) ? undefined : await req.text();
@@ -56,6 +65,10 @@ async function proxyRequest(req: NextRequest, path: string[], method: string) {
 
     const data = await response.text();
 
+    if (!response.ok) {
+      console.error(`[Proxy] Error from upstream (${response.status}):`, data);
+    }
+
     try {
       const json = JSON.parse(data);
       return NextResponse.json(json, { status: response.status });
@@ -65,6 +78,10 @@ async function proxyRequest(req: NextRequest, path: string[], method: string) {
 
   } catch (error) {
     console.error('Proxy Error:', error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ 
+      message: 'Internal Server Error',
+      error: error instanceof Error ? error.message : String(error),
+      // stack: error instanceof Error ? error.stack : undefined 
+    }, { status: 500 });
   }
 }
