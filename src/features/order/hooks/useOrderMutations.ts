@@ -14,7 +14,10 @@ export function useCreateOrder() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data?: OrderCreateRequest) => createOrder(data),
+    mutationFn: (data?: OrderCreateRequest) => {
+      const idempotencyKey = crypto.randomUUID();
+      return createOrder(data, idempotencyKey);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.orders });
       queryClient.invalidateQueries({ queryKey: queryKeys.cart });

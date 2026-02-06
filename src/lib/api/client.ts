@@ -19,6 +19,7 @@ export class ApiError extends Error {
 
 interface RequestConfig extends RequestInit {
     token?: string;
+    idempotencyKey?: string;
 }
 
 // Backend CommonResponse wrapper type
@@ -30,7 +31,7 @@ interface CommonResponse<T> {
 }
 
 async function request<T>(endpoint: string, config: RequestConfig = {}): Promise<T> {
-    const { token, headers, ...customConfig } = config;
+    const { token, idempotencyKey, headers, ...customConfig } = config;
 
     const defaultHeaders: HeadersInit = {
         'Content-Type': 'application/json',
@@ -38,6 +39,10 @@ async function request<T>(endpoint: string, config: RequestConfig = {}): Promise
 
     if (token) {
         defaultHeaders['Authorization'] = `Bearer ${token}`;
+    }
+
+    if (idempotencyKey) {
+        defaultHeaders['Idempotency-Key'] = idempotencyKey;
     }
 
     const response = await fetch(`${BASE_URL}${endpoint}`, {

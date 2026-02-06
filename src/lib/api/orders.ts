@@ -8,8 +8,11 @@ import type {
   OrderListResponse
 } from '@/types/order';
 
-export async function createOrder(data?: OrderCreateRequest): Promise<Order> {
-  return apiClient.post<Order>('/api/v2/orders', data || {});
+export async function createOrder(
+  data?: OrderCreateRequest,
+  idempotencyKey?: string
+): Promise<Order> {
+  return apiClient.post<Order>('/api/v2/orders', data || {}, { idempotencyKey });
 }
 
 export async function getOrder(orderId: string): Promise<OrderDetail> {
