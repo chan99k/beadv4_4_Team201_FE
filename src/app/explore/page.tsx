@@ -128,6 +128,31 @@ export default function DiscoverPage() {
                     </div>
                 )}
 
+                {/* 회원 위시리스트 바로가기 (친구 기능 미구현 → 전체 회원 탐색용) */}
+                <div className="mb-20">
+                    <div className="flex items-end justify-between mb-8">
+                        <div>
+                            <div className="flex items-center gap-2 mb-2">
+                                <Users className="w-4 h-4 text-blue-500" />
+                                <span className="text-[10px] font-black tracking-widest text-blue-500 uppercase">Members</span>
+                            </div>
+                            <h2 className="text-2xl md:text-3xl font-black tracking-tighter">위시리스트 둘러보기</h2>
+                        </div>
+                    </div>
+                    <p className="text-muted-foreground text-sm mb-6">
+                        회원의 위시리스트를 확인하고 펀딩을 개설하거나 참여해보세요.
+                    </p>
+                    <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-thin">
+                        {Array.from({ length: 10 }, (_, i) => i + 1).map((memberId) => (
+                            <MemberCard
+                                key={memberId}
+                                memberId={memberId.toString()}
+                                onClick={() => handleViewWishlist(memberId.toString())}
+                            />
+                        ))}
+                    </div>
+                </div>
+
                 {/* Trending Fundings (The 'Discover' core) */}
                 <div className="mb-20">
                     <div className="flex items-end justify-between mb-8">
@@ -218,5 +243,41 @@ export default function DiscoverPage() {
             </div>
             <Footer />
         </AppShell>
+    );
+}
+
+function MemberCard({ memberId, onClick }: { memberId: string; onClick: () => void }) {
+    const { data: wishlist, isLoading } = useWishlist(memberId);
+    const nickname = wishlist?.member?.nickname;
+    const itemCount = wishlist?.itemCount ?? 0;
+    const initial = nickname ? nickname.charAt(0) : memberId;
+
+    return (
+        <button
+            onClick={onClick}
+            className="group flex-shrink-0 w-[160px] flex flex-col items-center gap-3 p-6 border-2 border-gray-200 hover:border-black transition-all"
+        >
+            <div className="w-14 h-14 bg-gray-100 group-hover:bg-black group-hover:text-white flex items-center justify-center text-xl font-black transition-colors rounded-full">
+                {isLoading ? (
+                    <span className="w-6 h-6 rounded bg-gray-300 animate-pulse" />
+                ) : (
+                    initial
+                )}
+            </div>
+            <div className="text-center min-w-0 w-full">
+                <span className="block text-sm font-bold text-foreground group-hover:text-black truncate">
+                    {isLoading ? (
+                        <span className="block h-4 w-16 mx-auto rounded bg-gray-200 animate-pulse" />
+                    ) : (
+                        nickname || `회원 #${memberId}`
+                    )}
+                </span>
+                {!isLoading && itemCount > 0 && (
+                    <span className="block text-[11px] text-muted-foreground mt-1">
+                        위시 {itemCount}개
+                    </span>
+                )}
+            </div>
+        </button>
     );
 }
