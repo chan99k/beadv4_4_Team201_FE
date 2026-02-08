@@ -14,5 +14,4 @@ export interface HomeData {
     popularProducts: Product[];
     recommendedProducts?: Product[];
     hotProducts?: Product[];
-    walletBalance: number;
 }

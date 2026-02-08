@@ -11,6 +11,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { AmountInput } from '@/components/common/AmountInput';
+import { useWallet } from '@/features/wallet/hooks/useWallet';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useParticipateFunding } from '@/features/funding/hooks/useFundingMutations';
@@ -36,6 +37,7 @@ export function ParticipateModal({
     onSuccess
 }: ParticipateModalProps) {
     const [amount, setAmount] = useState(0);
+    const { data: wallet } = useWallet();
 
     const participateFunding = useParticipateFunding();
     const remainingAmount = funding.targetAmount - funding.currentAmount;
@@ -87,7 +89,7 @@ export function ParticipateModal({
                         value={amount}
                         onChange={setAmount}
                         maxAmount={remainingAmount}
-                        walletBalance={1000000}
+                        walletBalance={wallet?.balance}
                     />
 
                     <div className="text-sm text-muted-foreground space-y-1">

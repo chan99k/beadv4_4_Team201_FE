@@ -75,7 +75,6 @@ export function useHomeData() {
     popularProducts: popularProducts,
     recommendedProducts: recommendedProducts,
     hotProducts: hotProducts,
-    walletBalance: 0, 
   } : undefined;
 
   return {

@@ -11,46 +11,24 @@ import { useProfile } from '@/features/profile/hooks/useProfile';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useWallet } from '@/features/wallet/hooks/useWallet';
 import { InlineError } from '@/components/common/InlineError';
-import { Loader2, ChevronRight, Wallet, LogOut, MessageCircle } from 'lucide-react';
+import { Loader2, ChevronRight, Wallet, LogOut } from 'lucide-react';
 import { formatPrice } from '@/lib/format';
 
-// 나의 쇼핑정보
+const MY_GIFT_MENU = [
+    { label: '위시리스트', href: '/wishlist' },
+    { label: '개설한 펀딩', href: '/fundings/organized' },
+    { label: '참여한 펀딩', href: '/fundings/participated' },
+    { label: '받은 선물', href: '/fundings/received' },
+];
+
 const MY_SHOPPING_MENU = [
-    { label: '주문/배송 조회', href: '/orders' },
-    { label: '취소/반품/교환 내역', href: '/orders/cancel' },
-    { label: '결제수단 관리', href: '/payment-methods' },
+    { label: '장바구니', href: '/cart' },
+    { label: '지갑', href: '/wallet' },
 ];
 
-// 나의 계정정보
-const MY_ACCOUNT_MENU = [
-    { label: '프로필 수정', href: '/profile/edit' },
-    { label: '1:1 문의내역 조회', href: '/support/inquiries' },
-    { label: '주소록', href: '/addresses' },
-    { label: '계정설정', href: '/settings' },
-];
-
-// 고객센터
-const CUSTOMER_CENTER_MENU = [
-    { label: '1:1 문의', href: '/support' },
-    { label: 'FAQ', href: '/faq' },
-    { label: '교환 및 반품', href: '/returns' },
-    { label: '공지사항', href: '/notice' },
-];
-
-// 참여 / 혜택
-const BENEFITS_MENU = [
-    { label: '친구 초대하기', href: '/invite' },
-];
-
-const MY_ACTIVITY_MENU = [
-    { label: '나의 활동 (공개 프로필)', href: '/u/me' }, // Will require dynamic replacement in component or use /u/[id]
-];
-
-// About Giftify
-const ABOUT_MENU = [
-    { label: 'Giftify 소개', href: '/about' },
-    { label: '파트너 등록', href: '/partner' },
-    { label: '이용약관', href: '/terms' },
+const DISCOVER_MENU = [
+    { label: '상품 둘러보기', href: '/products' },
+    { label: '친구 찾기', href: '/explore' },
 ];
 
 export default function ProfilePage() {
@@ -113,6 +91,22 @@ export default function ProfilePage() {
                             </button>
                         </div>
 
+                        {/* 선물 / 펀딩 */}
+                        <div className="mb-6">
+                            <h3 className="text-xs font-medium mb-3">선물 / 펀딩</h3>
+                            <nav className="space-y-2">
+                                {MY_GIFT_MENU.map((item) => (
+                                    <Link
+                                        key={item.href}
+                                        href={item.href}
+                                        className="block text-sm text-muted-foreground hover:text-foreground transition-colors py-0.5"
+                                    >
+                                        {item.label}
+                                    </Link>
+                                ))}
+                            </nav>
+                        </div>
+
                         {/* 나의 쇼핑정보 */}
                         <div className="mb-6">
                             <h3 className="text-xs font-medium mb-3">나의 쇼핑정보</h3>
@@ -129,11 +123,11 @@ export default function ProfilePage() {
                             </nav>
                         </div>
 
-                        {/* 나의 계정정보 */}
+                        {/* 둘러보기 */}
                         <div className="mb-6">
-                            <h3 className="text-xs font-medium mb-3">나의 계정정보</h3>
+                            <h3 className="text-xs font-medium mb-3">둘러보기</h3>
                             <nav className="space-y-2">
-                                {MY_ACCOUNT_MENU.map((item) => (
+                                {DISCOVER_MENU.map((item) => (
                                     <Link
                                         key={item.href}
                                         href={item.href}
@@ -142,78 +136,14 @@ export default function ProfilePage() {
                                         {item.label}
                                     </Link>
                                 ))}
-                            </nav>
-                        </div>
-
-                        {/* 고객센터 */}
-                        <div className="mb-6">
-                            <h3 className="text-xs font-medium mb-3">고객센터</h3>
-                            <nav className="space-y-2">
-                                {CUSTOMER_CENTER_MENU.map((item) => (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href}
-                                        className="block text-sm text-muted-foreground hover:text-foreground transition-colors py-0.5"
-                                    >
-                                        {item.label}
-                                    </Link>
-                                ))}
-                            </nav>
-                        </div>
-
-                        {/* 참여 / 혜택 */}
-                        <div className="mb-6">
-                            <h3 className="text-xs font-medium mb-3">참여 / 혜택</h3>
-                            <nav className="space-y-2">
-                                {BENEFITS_MENU.map((item) => (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href}
-                                        className="block text-sm text-muted-foreground hover:text-foreground transition-colors py-0.5"
-                                    >
-                                        {item.label}
-                                    </Link>
-                                ))}
-                            </nav>
-                        </div>
-
-                        {/* 나의 활동 */}
-                        <div className="mb-6">
-                            <h3 className="text-xs font-medium mb-3">나의 활동</h3>
-                            <nav className="space-y-2">
                                 <Link
                                     href={`/u/${member.id}`}
                                     className="block text-sm text-muted-foreground hover:text-foreground transition-colors py-0.5"
                                 >
-                                    내 공개 프로필 보기
+                                    내 공개 프로필
                                 </Link>
                             </nav>
                         </div>
-
-                        {/* About Giftify */}
-                        <div className="mb-6">
-                            <h3 className="text-xs font-medium mb-3">ABOUT GIFTIFY</h3>
-                            <nav className="space-y-2">
-                                {ABOUT_MENU.map((item) => (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href}
-                                        className="block text-sm text-muted-foreground hover:text-foreground transition-colors py-0.5"
-                                    >
-                                        {item.label}
-                                    </Link>
-                                ))}
-                            </nav>
-                        </div>
-
-                        {/* 1:1 문의 Button */}
-                        <Link
-                            href="/support"
-                            className="flex items-center justify-center gap-2 w-full py-2.5 border border-border text-xs hover:bg-secondary transition-colors mb-6"
-                        >
-                            <MessageCircle className="h-3.5 w-3.5" strokeWidth={1.5} />
-                            1:1 문의하러가기
-                        </Link>
 
                         {/* Logout */}
                         <button
@@ -319,6 +249,23 @@ export default function ProfilePage() {
 
                         {/* Mobile Menu */}
                         <div className="lg:hidden space-y-8">
+                            {/* 선물 / 펀딩 */}
+                            <div>
+                                <h3 className="text-xs font-medium mb-3">선물 / 펀딩</h3>
+                                <div className="border-t border-border">
+                                    {MY_GIFT_MENU.map((item) => (
+                                        <Link
+                                            key={item.href}
+                                            href={item.href}
+                                            className="flex items-center justify-between py-3 border-b border-border"
+                                        >
+                                            <span className="text-sm">{item.label}</span>
+                                            <ChevronRight className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
+
                             {/* 나의 쇼핑정보 */}
                             <div>
                                 <h3 className="text-xs font-medium mb-3">나의 쇼핑정보</h3>
@@ -336,11 +283,11 @@ export default function ProfilePage() {
                                 </div>
                             </div>
 
-                            {/* 나의 계정정보 */}
+                            {/* 둘러보기 */}
                             <div>
-                                <h3 className="text-xs font-medium mb-3">나의 계정정보</h3>
+                                <h3 className="text-xs font-medium mb-3">둘러보기</h3>
                                 <div className="border-t border-border">
-                                    {MY_ACCOUNT_MENU.map((item) => (
+                                    {DISCOVER_MENU.map((item) => (
                                         <Link
                                             key={item.href}
                                             href={item.href}
@@ -350,82 +297,15 @@ export default function ProfilePage() {
                                             <ChevronRight className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
                                         </Link>
                                     ))}
-                                </div>
-                            </div>
-
-                            {/* 고객센터 */}
-                            <div>
-                                <h3 className="text-xs font-medium mb-3">고객센터</h3>
-                                <div className="border-t border-border">
-                                    {CUSTOMER_CENTER_MENU.map((item) => (
-                                        <Link
-                                            key={item.href}
-                                            href={item.href}
-                                            className="flex items-center justify-between py-3 border-b border-border"
-                                        >
-                                            <span className="text-sm">{item.label}</span>
-                                            <ChevronRight className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
-                                        </Link>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* 참여 / 혜택 */}
-                            <div>
-                                <h3 className="text-xs font-medium mb-3">참여 / 혜택</h3>
-                                <div className="border-t border-border">
-                                    {BENEFITS_MENU.map((item) => (
-                                        <Link
-                                            key={item.href}
-                                            href={item.href}
-                                            className="flex items-center justify-between py-3 border-b border-border"
-                                        >
-                                            <span className="text-sm">{item.label}</span>
-                                            <ChevronRight className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
-                                        </Link>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* 나의 활동 */}
-                            <div>
-                                <h3 className="text-xs font-medium mb-3">나의 활동</h3>
-                                <div className="border-t border-border">
                                     <Link
                                         href={`/u/${member.id}`}
                                         className="flex items-center justify-between py-3 border-b border-border"
                                     >
-                                        <span className="text-sm">내 공개 프로필 보기</span>
+                                        <span className="text-sm">내 공개 프로필</span>
                                         <ChevronRight className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
                                     </Link>
                                 </div>
                             </div>
-
-                            {/* About Giftify */}
-                            <div>
-                                <h3 className="text-xs font-medium mb-3">ABOUT GIFTIFY</h3>
-                                <div className="border-t border-border">
-                                    {ABOUT_MENU.map((item) => (
-                                        <Link
-                                            key={item.href}
-                                            href={item.href}
-                                            className="flex items-center justify-between py-3 border-b border-border"
-                                        >
-                                            <span className="text-sm">{item.label}</span>
-                                            <ChevronRight className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
-                                        </Link>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* 1:1 문의 Button */}
-                            <Link
-                                href="/support"
-                                className="flex items-center justify-center gap-2 w-full py-3 border border-border text-sm hover:bg-secondary transition-colors"
-                            >
-                                <MessageCircle className="h-4 w-4" strokeWidth={1.5} />
-                                1:1 문의하러가기
-                            </Link>
 
                             {/* Logout */}
                             <button

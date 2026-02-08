@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { AmountInput } from '@/components/common/AmountInput';
+import { useWallet } from '@/features/wallet/hooks/useWallet';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCreateFunding } from '@/features/funding/hooks/useFundingMutations';
@@ -42,6 +43,7 @@ export function CreateFundingModal({
 }: CreateFundingModalProps) {
     const [amount, setAmount] = useState(0);
     const [expiresInDays, setExpiresInDays] = useState(14);
+    const { data: wallet } = useWallet();
     const [message, setMessage] = useState('');
 
     const createFunding = useCreateFunding();
@@ -123,7 +125,7 @@ export function CreateFundingModal({
                             value={amount}
                             onChange={setAmount}
                             maxAmount={wishItem.product.price}
-                            walletBalance={1000000}
+                            walletBalance={wallet?.balance}
                         />
                         <p className="text-xs text-muted-foreground">
                             펀딩을 시작하려면 먼저 참여 금액을 입력해주세요.
