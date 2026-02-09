@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -271,8 +272,11 @@ export default function CheckoutPage() {
                             {hasInsufficientBalance && (
                                 <Alert variant="destructive" className="mt-4">
                                     <AlertCircle className="h-4 w-4" />
-                                    <AlertDescription>
-                                        잔액이 부족합니다. 지갑을 충전해주세요.
+                                    <AlertDescription className="flex items-center justify-between">
+                                        <span>잔액이 부족합니다. 지갑을 충전해주세요.</span>
+                                        <Link href="/wallet/charge" className="ml-3 shrink-0 text-sm font-semibold underline underline-offset-2">
+                                            충전하기
+                                        </Link>
                                     </AlertDescription>
                                 </Alert>
                             )}
