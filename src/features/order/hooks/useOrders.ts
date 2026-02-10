@@ -3,15 +3,19 @@ import { queryKeys } from '@/lib/query/keys';
 import { getOrder, getOrders } from '@/lib/api/orders';
 import type { PageParams } from '@/types/api';
 
-/**
- * Hook to fetch a specific order detail
- * @param orderId - The ID of the order to fetch
- */
-export function useOrder(orderId: string) {
+interface UseOrderOptions {
+  enabled?: boolean;
+}
+
+export function useOrder(orderId: string, options?: UseOrderOptions) {
+  const externalEnabled = options?.enabled ?? true;
+
   return useQuery({
     queryKey: queryKeys.order(orderId),
     queryFn: () => getOrder(orderId),
-    enabled: !!orderId,
+    enabled: !!orderId && externalEnabled,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
   });
 }
 

@@ -13,6 +13,7 @@ interface AppShellProps {
     headerTitle?: string;
     hasBack?: boolean;
     hideHeaderActions?: boolean;
+    headerRight?: React.ReactNode;
     className?: string;
 }
 
@@ -24,6 +25,7 @@ export function AppShell({
     headerTitle,
     hasBack,
     hideHeaderActions,
+    headerRight,
     className,
 }: AppShellProps) {
     return (
@@ -34,6 +36,7 @@ export function AppShell({
                     title={headerTitle}
                     hasBack={hasBack}
                     hideActions={hideHeaderActions}
+                    rightAction={headerRight}
                 />
             )}
 

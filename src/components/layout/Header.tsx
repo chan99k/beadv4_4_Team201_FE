@@ -103,12 +103,16 @@ export function Header({
                         )}
                         {title && <h1 className="text-base font-medium">{title}</h1>}
                     </div>
-                    {!hideActions && (
+                    {rightAction ? (
+                        <div className="flex items-center">
+                            {rightAction}
+                        </div>
+                    ) : !hideActions && (
                         <div className="flex items-center gap-4">
                             <button onClick={() => setIsSearchOpen(true)}>
                                 <Search className="h-6 w-6" strokeWidth={1.5} />
                             </button>
-                            {rightAction || <MobileNavigationIcons />}
+                            <MobileNavigationIcons />
                         </div>
                     )}
                 </div>

@@ -92,7 +92,6 @@ export default function CheckoutPage() {
                 method: 'DEPOSIT',
             });
 
-            toast.success('결제가 완료되었습니다!');
             router.push(`/checkout/complete?orderId=${result.orderId}`);
         } catch (error: any) {
             const errorCode = error?.code;
