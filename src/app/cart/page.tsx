@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCart } from '@/features/cart/hooks/useCart';
-import { useUpdateCartItem, useRemoveCartItem, useToggleCartSelection } from '@/features/cart/hooks/useCartMutations';
+import { useUpdateCartItem, useRemoveCartItems, useToggleCartSelection } from '@/features/cart/hooks/useCartMutations';
 import { Skeleton } from '@/components/ui/skeleton';
 import { InlineError } from '@/components/common/InlineError';
 import { Minus, Plus, Gift } from 'lucide-react';
@@ -21,7 +21,7 @@ export default function CartPage() {
     const router = useRouter();
     const { data: cart, isLoading, isError, error, refetch } = useCart();
     const updateCartItem = useUpdateCartItem();
-    const removeCartItem = useRemoveCartItem();
+    const removeCartItems = useRemoveCartItems();
     const toggleSelection = useToggleCartSelection();
 
     const selectedItems = cart?.items.filter(item => item.selected) || [];
@@ -51,7 +51,7 @@ export default function CartPage() {
     };
 
     const handleRemove = (id: string) => {
-        removeCartItem.mutate(id, {
+        removeCartItems.mutate([id], {
             onSuccess: () => {
                 toast.success('장바구니에서 삭제되었습니다.');
             },
@@ -72,9 +72,17 @@ export default function CartPage() {
     };
 
     const handleRemoveSelected = () => {
-        if (!cart) return;
-        selectedItems.forEach(item => {
-            removeCartItem.mutate(item.id);
+        if (!cart || selectedItems.length === 0) return;
+        
+        const selectedIds = selectedItems.map(item => item.id);
+        
+        removeCartItems.mutate(selectedIds, {
+            onSuccess: () => {
+                toast.success(`${selectedIds.length}개의 상품이 삭제되었습니다.`);
+            },
+            onError: () => {
+                toast.error('선택 상품 삭제에 실패했습니다.');
+            }
         });
     };
 

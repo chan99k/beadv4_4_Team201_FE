@@ -94,7 +94,7 @@ function mapBackendCartItem(item: BackendCartItemResponse, cartId: number, index
 
 // --- Helpers ---
 
-function parseCartItemId(itemId: string): { targetType: BackendTargetType; targetId: number } {
+export function parseCartItemId(itemId: string): { targetType: BackendTargetType; targetId: number } {
   const parts = itemId.split('-');
   const targetId = parseInt(parts[parts.length - 1], 10);
   const targetType = parts.slice(1, -1).join('-') as BackendTargetType;
@@ -169,11 +169,14 @@ export async function updateCartItem(itemId: string, data: CartItemUpdateRequest
 
 /**
  * 장바구니 아이템 삭제
- * @endpoint DELETE /api/v2/carts/items/{targetType}/{targetId}
+ * @endpoint DELETE /api/v2/carts/items/{targetType}?targetIds={id1,id2,...}
  */
-export async function removeCartItem(itemId: string): Promise<void> {
-  const { targetType, targetId } = parseCartItemId(itemId);
-  await apiClient.delete<void>(`/api/v2/carts/items/${targetType}/${targetId}`);
+export async function removeCartItem(targetType: string, targetIds: number[]): Promise<void> {
+  // 1. 배열을 쉼표로 연결 (예: [8, 9] -> "8,9")
+  const ids = targetIds.join(',');
+
+  // 2. URL 뒤에 직접 ?targetIds=... 를 붙임
+  await apiClient.delete(`/api/v2/carts/items/${targetType}?targetIds=${ids}`);
 }
 
 /**

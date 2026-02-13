@@ -5,6 +5,7 @@ import {
   updateCartItem,
   removeCartItem,
   toggleCartItemSelection,
+  parseCartItemId,
 } from '@/lib/api/cart';
 import type { CartItemCreateRequest, CartItemUpdateRequest } from '@/types/cart';
 
@@ -87,12 +88,36 @@ export function useUpdateCartItem() {
  *
  * Includes optimistic update for better UX
  */
-export function useRemoveCartItem() {
+/**
+ * Hook to remove items from the cart (supports batch deletion)
+ *
+ * Invalidates: cart
+ *
+ * Includes optimistic update for better UX
+ */
+export function useRemoveCartItems() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (itemId: string) => removeCartItem(itemId),
-    onMutate: async (itemId) => {
+    mutationFn: async (itemIds: string[]) => {
+      // 1. Group IDs by targetType
+      const groups = new Map<string, number[]>();
+      
+      itemIds.forEach((id) => {
+        const { targetType, targetId } = parseCartItemId(id);
+        const list = groups.get(targetType) || [];
+        list.push(targetId);
+        groups.set(targetType, list);
+      });
+
+      // 2. Call API in parallel
+      const promises = Array.from(groups.entries()).map(([type, ids]) =>
+        removeCartItem(type, ids)
+      );
+
+      await Promise.all(promises);
+    },
+    onMutate: async (itemIds) => {
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: queryKeys.cart });
 
@@ -104,7 +129,7 @@ export function useRemoveCartItem() {
         if (!old) return old;
         return {
           ...old,
-          items: old.items.filter((item: any) => item.id !== itemId),
+          items: old.items.filter((item: any) => !itemIds.includes(item.id)),
         };
       });
 
