@@ -189,13 +189,6 @@ export async function toggleCartItemSelection(_itemId: string, _selected: boolea
   return Promise.resolve();
 }
 
-/**
- * 장바구니 비우기
- * @note 백엔드에 해당 API 없음
- * @todo 백엔드에 DELETE /api/v2/carts/{cartId} 추가 요청
- */
 export async function clearCart(): Promise<void> {
-  throw new Error(
-    '장바구니 비우기 API가 백엔드에 없습니다.'
-  );
+  await apiClient.delete('/api/v2/carts');
 }
