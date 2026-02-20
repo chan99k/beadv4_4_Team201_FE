@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/query/keys';
 import {
   getFunding,
-  getMyOrganizedFundings,
+  getMyFunding,
   getMyParticipatedFundings,
   getMyReceivedFundings,
 } from '@/lib/api/fundings';
@@ -23,17 +23,18 @@ export function useFunding(fundingId: string) {
 }
 
 /**
- * Hook to fetch fundings organized by the current user
- * @param params - Query parameters (status, page, size)
+ * Hook to fetch a specific my funding detail
+ * @param fundingId - The ID of the funding to fetch
  */
-export function useMyOrganizedFundings(params?: FundingQueryParams) {
-  const { user } = useAuth();
+export function useMyFunding(fundingId: string) {
   return useQuery({
-    queryKey: queryKeys.myOrganizedFundings,
-    queryFn: () => getMyOrganizedFundings(params),
-    enabled: !!user,
+    queryKey: queryKeys.myFunding(fundingId),
+    queryFn: () => getMyFunding(fundingId),
+    enabled: !!fundingId,
   });
 }
+
+
 
 /**
  * Hook to fetch fundings the current user has participated in
