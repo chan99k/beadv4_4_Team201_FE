@@ -15,6 +15,18 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/utils/format';
 
+const CATEGORY_LABEL: Record<string, string> = {
+  ELECTRONICS: '전자기기',
+  BEAUTY: '뷰티',
+  FASHION: '패션',
+  LIVING: '리빙',
+  FOODS: '식품',
+  TOYS: '완구',
+  OUTDOOR: '아웃도어',
+  PET: '반려동물',
+  KITCHEN: '주방',
+};
+
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { data: product, isLoading, error } = useProductDetail(id);
@@ -41,7 +53,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   if (error) {
     return (
-      <AppShell headerVariant="detail">
+      <AppShell headerVariant="main">
         <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
           <div className="text-6xl mb-6">😢</div>
           <h2 className="text-xl font-medium mb-2">상품을 찾을 수 없습니다</h2>
@@ -57,7 +69,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   if (isLoading || !product) {
     return (
-      <AppShell headerVariant="detail">
+      <AppShell headerVariant="main">
         <div className="max-w-screen-xl mx-auto px-4 md:px-8 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
             <Skeleton className="aspect-square w-full" />
@@ -79,7 +91,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     : [product.imageUrl || '/images/placeholder-product.svg'];
 
   return (
-    <AppShell headerVariant="detail">
+    <AppShell headerVariant="main">
       <div className="max-w-screen-xl mx-auto px-4 md:px-8">
         {/* Breadcrumb */}
         <nav className="py-4 text-sm text-muted-foreground">
@@ -87,6 +99,16 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             <li><Link href="/" className="hover:text-foreground">홈</Link></li>
             <li>/</li>
             <li><Link href="/products" className="hover:text-foreground">상품</Link></li>
+            {product.category && (
+              <>
+                <li>/</li>
+                <li>
+                  <Link href={`/products?category=${product.category.toLowerCase()}`} className="hover:text-foreground">
+                    {CATEGORY_LABEL[product.category] || product.category}
+                  </Link>
+                </li>
+              </>
+            )}
             <li>/</li>
             <li className="text-foreground truncate max-w-[200px]">{product.name}</li>
           </ol>

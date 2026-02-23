@@ -110,7 +110,7 @@ export async function getProduct(productId: string): Promise<ProductDetail> {
     description: product.description,
     images: [],
     stock: 100, // 백엔드에서 제공하지 않음
-    category: 'GENERAL',
+    category: product.category,
     rating: 0,
     reviewCount: 0,
     salesCount: 0,
