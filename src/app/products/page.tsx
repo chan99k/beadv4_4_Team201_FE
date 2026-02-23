@@ -14,15 +14,15 @@ import { cn } from '@/lib/utils';
 // Categories for sidebar filter
 const CATEGORIES = [
   { label: '전체', value: '' },
-  { label: '전자기기', value: 'ELECTRONICS' },
-  { label: '뷰티', value: 'BEAUTY' },
-  { label: '패션', value: 'FASHION' },
-  { label: '리빙', value: 'LIVING' },
-  { label: '식품', value: 'FOODS' },
-  { label: '완구', value: 'TOYS' },
-  { label: '아웃도어', value: 'OUTDOOR' },
-  { label: '반려동물', value: 'PET' },
-  { label: '주방', value: 'KITCHEN' },
+  { label: '전자기기', value: 'electronics' },
+  { label: '뷰티', value: 'beauty' },
+  { label: '패션', value: 'fashion' },
+  { label: '리빙', value: 'living' },
+  { label: '식품', value: 'foods' },
+  { label: '완구', value: 'toys' },
+  { label: '아웃도어', value: 'outdoor' },
+  { label: '반려동물', value: 'pet' },
+  { label: '주방', value: 'kitchen' },
 ];
 
 // Sort options
