@@ -30,6 +30,7 @@ interface BackendCartItemRequest {
 interface BackendCartItemResponse {
   targetType: BackendTargetType;
   targetId: number;
+  receiverId: number;
   productName: string;
   productPrice: number;
   contributionAmount: number;
@@ -64,6 +65,7 @@ function mapBackendCartItem(item: BackendCartItemResponse, cartId: number): Cart
     id: `${cartId}::${item.targetType}::${item.targetId}`, // 복합 키 생성
     cartId: cartId.toString(),
     fundingId: item.targetType === 'FUNDING' ? item.targetId.toString() : '',
+    receiverId: item.receiverId,
     funding: {
       id: item.targetType === 'FUNDING' ? item.targetId.toString() : '',
       wishItemId: item.targetType === 'FUNDING_PENDING' ? item.targetId.toString() : '',
@@ -125,22 +127,15 @@ export async function addCartItem(data: CartItemCreateRequest): Promise<void> {
   let amount: number;
 
   if (data.fundingId) {
-    // 기존 펀딩에 참여
     targetType = 'FUNDING';
     targetId = parseInt(data.fundingId, 10);
     amount = data.amount || 0;
   } else if (data.wishItemId) {
-    // 새 펀딩 개설
     targetType = 'FUNDING_PENDING';
     targetId = parseInt(data.wishItemId, 10);
     amount = data.amount || 0;
-  } else if (data.productId) {
-    // 일반 상품 (현재 백엔드에서 미지원)
-    targetType = 'GENERAL_PRODUCT';
-    targetId = parseInt(data.productId, 10);
-    amount = data.quantity || 1;
   } else {
-    throw new Error('fundingId, wishItemId, or productId is required');
+    throw new Error('fundingId or wishItemId is required');
   }
 
   const request: BackendCartItemRequest = {
