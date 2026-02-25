@@ -32,7 +32,9 @@ interface BackendCartItemResponse {
   targetType: BackendTargetType;
   targetId: number;
   receiverId: number;
-  productName: string;
+  receiverNickname: string;
+  productName: string | null;
+  imageKey: string | null;
   productPrice: number;
   contributionAmount: number;
   status: string; // ItemStatus enum (AVAILABLE, SOLD_OUT, DISCONTINUED, FUNDING_ENDED)
@@ -70,7 +72,9 @@ function mapBackendCartItem(item: BackendCartItemResponse, cartId: number): Cart
     targetType: item.targetType as any,
     targetId: item.targetId.toString(),
     receiverId: item.receiverId?.toString() || null,
-    productName: item.productName || '',
+    receiverNickname: item.receiverNickname,
+    imageKey: item.imageKey,
+    productName: item.productName,
     productPrice: item.productPrice,
     contributionAmount: item.contributionAmount,
     amount: item.contributionAmount,
@@ -81,7 +85,7 @@ function mapBackendCartItem(item: BackendCartItemResponse, cartId: number): Cart
         id: '',
         name: item.productName || '',
         price: item.productPrice,
-        imageUrl: resolveImageUrl(undefined),
+        imageUrl: resolveImageUrl(item.imageKey),
         status: 'ON_SALE',
         brandName: '',
       },
@@ -90,7 +94,7 @@ function mapBackendCartItem(item: BackendCartItemResponse, cartId: number): Cart
       recipientId: item.receiverId?.toString() || '',
       recipient: {
         id: item.receiverId?.toString() || '',
-        nickname: '', // 백엔드에서 닉네임은 미제공 (필요시 별도 조회 필요)
+        nickname: item.receiverNickname || '',
         avatarUrl: null
       },
       targetAmount: item.productPrice,
@@ -173,7 +177,24 @@ export async function updateCartItem(itemId: string, data: CartItemUpdateRequest
     amount: data.amount!,
   };
 
-  await apiClient.patch<void>('/api/v2/carts/items', request);
+  await apiClient.patch<void>('/api/v2/carts/items', [request]);
+}
+
+/**
+ * 장바구니 아이템 다중 수정 (참여 금액)
+ * @endpoint PATCH /api/v2/carts/items
+ */
+export async function updateCartItems(updates: { itemId: string; amount: number }[]): Promise<void> {
+  const requests = updates.map(({ itemId, amount }) => {
+    const { targetType, targetId } = parseCartItemId(itemId);
+    return {
+      targetType,
+      targetId,
+      amount,
+    };
+  });
+
+  await apiClient.patch<void>('/api/v2/carts/items', requests);
 }
 
 /**

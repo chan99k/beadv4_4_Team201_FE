@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -7,14 +8,13 @@ import { AppShell } from '@/components/layout/AppShell';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useCart } from '@/features/cart/hooks/useCart';
-import { useUpdateCartItem, useRemoveCartItems, useToggleCartSelection } from '@/features/cart/hooks/useCartMutations';
+import { useUpdateCartItem, useUpdateCartItems, useRemoveCartItems, useToggleCartSelection } from '@/features/cart/hooks/useCartMutations';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { InlineError } from '@/components/common/InlineError';
-import { Gift, Loader2, AlertCircle } from 'lucide-react';
+import { Gift, Loader2, AlertCircle, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPrice } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -23,6 +23,8 @@ export default function CartPage() {
     const router = useRouter();
     const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
     const { data: cart, isLoading: isCartLoading, isError, error, refetch } = useCart();
+    const [editingItemIds, setEditingItemIds] = useState<Set<string>>(new Set());
+    const [tempAmounts, setTempAmounts] = useState<Record<string, string>>({});
 
     // Redirect to login if not authenticated
     if (!isAuthLoading && !isAuthenticated) {
@@ -32,6 +34,7 @@ export default function CartPage() {
 
     const isLoading = isAuthLoading || isCartLoading;
     const updateCartItem = useUpdateCartItem();
+    const updateCartItems = useUpdateCartItems();
     const removeCartItems = useRemoveCartItems();
     const toggleSelection = useToggleCartSelection();
 
@@ -41,14 +44,52 @@ export default function CartPage() {
     const allSelected = (cart?.items.length ?? 0) > 0 && cart?.items.every(item => item.selected);
 
     const handleUpdateAmount = (id: string, amount: number) => {
+        if (amount < 1000) {
+            toast.error('최소 참여 금액은 1,000원입니다.');
+            return;
+        }
+
         updateCartItem.mutate(
             { itemId: id, data: { amount } },
             {
+                onSuccess: () => {
+                    setEditingItemIds((prev) => {
+                        const next = new Set(prev);
+                        next.delete(id);
+                        return next;
+                    });
+                },
                 onError: () => {
                     toast.error('금액 변경에 실패했습니다.');
                 }
             }
         );
+    };
+
+    const toggleEdit = (id: string, currentAmount: number) => {
+        setEditingItemIds((prev) => {
+            const next = new Set(prev);
+            const isEditing = next.has(id);
+
+            if (isEditing) {
+                // Save logic
+                const tempValue = tempAmounts[id];
+                const amount = parseInt(tempValue?.replace(/,/g, '') || '0', 10);
+
+                if (amount < 1000) {
+                    toast.error('최소 참여 금액은 1,000원입니다.');
+                    return prev;
+                }
+
+                handleUpdateAmount(id, amount);
+                return prev; // Let handleUpdateAmount success handler remove the ID
+            } else {
+                // Enter edit mode
+                next.add(id);
+                setTempAmounts(v => ({ ...v, [id]: currentAmount.toLocaleString() }));
+            }
+            return next;
+        });
     };
 
     const handleToggleSelect = (id: string, selected: boolean) => {
@@ -69,6 +110,34 @@ export default function CartPage() {
             },
             onError: () => {
                 toast.error('삭제에 실패했습니다.');
+            }
+        });
+    };
+
+    const handleBulkUpdate = () => {
+        const updates: { itemId: string; amount: number }[] = [];
+        const idsArray = Array.from(editingItemIds);
+
+        for (const id of idsArray) {
+            const tempValue = tempAmounts[id];
+            const amount = parseInt(tempValue?.replace(/,/g, '') || '0', 10);
+
+            if (amount < 1000) {
+                toast.error('모든 참여 금액은 1,000원 이상이어야 합니다.');
+                return;
+            }
+            updates.push({ itemId: id, amount });
+        }
+
+        if (updates.length === 0) return;
+
+        updateCartItems.mutate(updates, {
+            onSuccess: () => {
+                toast.success('금액이 저장되었습니다.');
+                setEditingItemIds(new Set());
+            },
+            onError: () => {
+                toast.error('금액 저장에 실패했습니다.');
             }
         });
     };
@@ -106,13 +175,6 @@ export default function CartPage() {
         router.push('/checkout');
     };
 
-    // Calculate D-day helper
-    const getDaysLeft = (expiresAt?: string) => {
-        if (!expiresAt) return null;
-        const today = new Date();
-        const expiryDate = new Date(expiresAt);
-        return Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    };
 
     if (isLoading) {
         return (
@@ -143,15 +205,13 @@ export default function CartPage() {
                     </div>
                     {/* Desktop skeleton */}
                     <div className="hidden lg:block">
-                        <div className="grid grid-cols-12 gap-4 border-b border-foreground pb-3">
+                        <div className="grid grid-cols-8 gap-4 border-b border-foreground pb-3">
                             <Skeleton className="col-span-1 h-4 w-4" />
                             <Skeleton className="col-span-5 h-4 w-20" />
                             <Skeleton className="col-span-2 h-4 w-16 mx-auto" />
-                            <Skeleton className="col-span-2 h-4 w-12 mx-auto" />
-                            <Skeleton className="col-span-2 h-4 w-12 mx-auto" />
                         </div>
                         {[1, 2, 3].map((i) => (
-                            <div key={i} className="grid grid-cols-12 gap-4 border-b border-border py-6 items-start">
+                            <div key={i} className="grid grid-cols-8 gap-4 border-b border-border py-6 items-start">
                                 <Skeleton className="col-span-1 h-4 w-4 mt-1" />
                                 <div className="col-span-5 flex gap-4">
                                     <Skeleton className="w-[100px] h-[130px] flex-shrink-0" />
@@ -159,12 +219,9 @@ export default function CartPage() {
                                         <Skeleton className="h-3 w-24" />
                                         <Skeleton className="h-4 w-full" />
                                         <Skeleton className="h-4 w-20 mt-2" />
-                                        <Skeleton className="h-3 w-28" />
                                     </div>
                                 </div>
                                 <Skeleton className="col-span-2 h-6 w-20 mx-auto" />
-                                <Skeleton className="col-span-2 h-4 w-full" />
-                                <Skeleton className="col-span-2 h-5 w-12 mx-auto" />
                             </div>
                         ))}
                     </div>
@@ -213,7 +270,7 @@ export default function CartPage() {
                         {/* Cart Table - Desktop (29cm Style) */}
                         <div className="hidden lg:block">
                             {/* Table Header */}
-                            <div className="grid grid-cols-12 gap-4 border-b border-foreground pb-3 text-xs text-muted-foreground">
+                            <div className="grid grid-cols-8 gap-4 border-b border-foreground pb-3 text-xs text-muted-foreground">
                                 <div className="col-span-1 flex items-center">
                                     <Checkbox
                                         checked={allSelected}
@@ -221,26 +278,29 @@ export default function CartPage() {
                                         aria-label="전체 선택"
                                     />
                                 </div>
-                                <div className="col-span-5">펀딩 정보</div>
-                                <div className="col-span-2 text-center">참여 금액</div>
-                                <div className="col-span-2 text-center">진행률</div>
-                                <div className="col-span-2 text-center">마감</div>
+                                <div className="col-span-5 flex items-center">펀딩 정보</div>
+                                <div className="col-span-2 flex items-center justify-between">
+                                    <span>참여 금액</span>
+                                    <button
+                                        onClick={handleRemoveSelected}
+                                        disabled={selectedItems.length === 0}
+                                        className="text-[11px] text-foreground border border-border rounded-sm px-2 py-1 hover:bg-secondary transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                    >
+                                        선택삭제
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Cart Items */}
                             {cart.items.map((item) => {
                                 const { funding, productName } = item;
-                                const progressPercent = (funding.targetAmount > 0)
-                                    ? (funding.currentAmount / funding.targetAmount) * 100
-                                    : 0;
-                                const daysLeft = getDaysLeft(funding.expiresAt);
                                 const isAvailable = item.status === 'AVAILABLE';
 
                                 return (
                                     <div
                                         key={item.id}
                                         className={cn(
-                                            "grid grid-cols-12 gap-4 border-b border-border py-6 items-start",
+                                            "grid grid-cols-8 gap-4 border-b border-border py-6 items-start",
                                             !isAvailable && "opacity-60"
                                         )}
                                     >
@@ -288,7 +348,7 @@ export default function CartPage() {
                                                     "text-sm font-medium transition-all line-clamp-2 leading-relaxed",
                                                     isAvailable ? "hover:underline" : "text-muted-foreground"
                                                 )}>
-                                                    {productName}
+                                                    {productName || '상품 정보 없음'}
                                                 </h3>
 
                                                 {/* Unavailable message */}
@@ -302,97 +362,71 @@ export default function CartPage() {
                                                 <p className="text-sm font-medium mt-2">
                                                     {formatPrice(item.productPrice)}
                                                 </p>
-                                                <p className="text-xs text-muted-foreground mt-1">
-                                                    현재 {formatPrice(funding.currentAmount)} 모금됨
-                                                </p>
                                             </div>
                                         </div>
 
                                         {/* Participation Amount/Quantity - 29cm Style */}
-                                        <div className="col-span-2 flex flex-col items-center gap-2 pt-1">
-                                            <div className="w-full max-w-[120px]">
-                                                <input
-                                                    type="text"
-                                                    value={item.amount.toLocaleString()}
-                                                    onChange={(e) => {
-                                                        if (!isAvailable) return;
-                                                        const value = parseInt(e.target.value.replace(/,/g, '')) || 0;
-                                                        if (value >= 0) {
-                                                            handleUpdateAmount(item.id, value);
-                                                        }
-                                                    }}
-                                                    disabled={!isAvailable}
-                                                    className={cn(
-                                                        "w-full text-sm font-medium text-center bg-transparent border-b border-border focus:border-foreground focus:outline-none py-1",
-                                                        !isAvailable && "text-muted-foreground cursor-not-allowed"
-                                                    )}
-                                                />
-                                                <p className="text-[11px] text-muted-foreground text-center mt-1">
-                                                    원
-                                                </p>
+                                        <div className="col-span-2 flex items-center justify-between pt-1">
+                                            <div className="flex items-center gap-2">
+                                                <div className="flex items-center w-28 shrink-0">
+                                                    <input
+                                                        type="text"
+                                                        value={editingItemIds.has(item.id) ? (tempAmounts[item.id] || '') : item.amount.toLocaleString()}
+                                                        onChange={(e) => {
+                                                            if (!isAvailable) return;
+                                                            const value = e.target.value.replace(/[^0-9]/g, '');
+                                                            const formatted = value ? parseInt(value, 10).toLocaleString() : '';
+                                                            setTempAmounts(v => ({ ...v, [item.id]: formatted }));
+                                                        }}
+                                                        disabled={!isAvailable || !editingItemIds.has(item.id)}
+                                                        className={cn(
+                                                            "text-sm font-medium text-left bg-transparent focus:outline-none py-1 transition-all",
+                                                            !isAvailable ? "text-muted-foreground cursor-not-allowed" : "text-foreground",
+                                                            editingItemIds.has(item.id) && "border-b border-foreground"
+                                                        )}
+                                                        style={{
+                                                            width: `${Math.max(1, (editingItemIds.has(item.id) ? (tempAmounts[item.id] || '') : item.amount.toLocaleString()).length)}ch`,
+                                                            minWidth: '2ch'
+                                                        }}
+                                                    />
+                                                    <span className="text-sm text-foreground">
+                                                        원
+                                                    </span>
+                                                </div>
+                                                {isAvailable && (
+                                                    <button
+                                                        onClick={() => toggleEdit(item.id, item.amount)}
+                                                        className="text-[11px] text-foreground border border-border rounded-sm px-2 py-0.5 hover:bg-secondary transition-colors shrink-0"
+                                                    >
+                                                        {editingItemIds.has(item.id) ? '저장' : '수정'}
+                                                    </button>
+                                                )}
                                             </div>
                                             <button
                                                 onClick={() => handleRemove(item.id)}
-                                                className="text-[11px] text-muted-foreground hover:text-foreground underline transition-colors"
+                                                className="text-black hover:opacity-70 transition-colors pr-0 p-1"
+                                                aria-label="삭제"
                                             >
-                                                삭제
+                                                <X className="h-8 w-4" stroke="black" />
                                             </button>
                                         </div>
 
-                                        {/* Progress */}
-                                        <div className="col-span-2 pt-1">
-                                            {isAvailable ? (
-                                                <div className="space-y-1">
-                                                    <Progress value={progressPercent} className="h-1.5" />
-                                                    <p className="text-xs text-muted-foreground text-center">
-                                                        {Math.round(progressPercent)}% 달성
-                                                    </p>
-                                                </div>
-                                            ) : (
-                                                <div className="text-center text-xs text-muted-foreground italic">
-                                                    -
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Days Left - 29cm Style */}
-                                        <div className="col-span-2 text-center pt-1">
-                                            {isAvailable && daysLeft !== null && (
-                                                <>
-                                                    <p className={`text-sm font-medium ${daysLeft <= 3 ? 'text-destructive' : ''}`}>
-                                                        D-{daysLeft}
-                                                    </p>
-                                                    <p className="text-[11px] text-muted-foreground mt-1">
-                                                        {funding.participantCount || 0}명 참여
-                                                    </p>
-                                                </>
-                                            )}
-                                        </div>
                                     </div>
                                 );
                             })}
 
                             {/* Action Buttons - 29cm Style */}
                             <div className="flex gap-2 py-6">
-                                <button
-                                    onClick={handleSelectAll}
-                                    className="px-4 py-2 border border-border text-xs hover:bg-secondary transition-colors"
-                                >
-                                    전체상품 선택
-                                </button>
-                                <button
-                                    onClick={handleRemoveSelected}
-                                    disabled={selectedItems.length === 0}
-                                    className="px-4 py-2 border border-border text-xs hover:bg-secondary transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                                >
-                                    선택상품 삭제
-                                </button>
+                                {editingItemIds.size > 0 && (
+                                    <button
+                                        onClick={handleBulkUpdate}
+                                        className="px-4 py-2 bg-foreground text-background text-xs hover:opacity-90 transition-opacity"
+                                    >
+                                        변경사항 저장
+                                    </button>
+                                )}
                             </div>
 
-                            {/* Cart Notice - 29cm Style */}
-                            <div className="text-right text-xs text-muted-foreground py-2">
-                                장바구니는 최대 100개의 펀딩을 담을 수 있습니다.
-                            </div>
                         </div>
 
                         {/* Mobile Cart - 29cm Style */}
@@ -412,7 +446,7 @@ export default function CartPage() {
                                 <button
                                     onClick={handleRemoveSelected}
                                     disabled={selectedItems.length === 0}
-                                    className="text-xs text-muted-foreground hover:text-foreground disabled:opacity-40"
+                                    className="text-xs text-foreground border border-border rounded-sm px-2 py-1 hover:bg-secondary transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                                 >
                                     선택 삭제
                                 </button>
@@ -421,10 +455,6 @@ export default function CartPage() {
                             {/* Mobile Cart Items */}
                             {cart.items.map((item) => {
                                 const { funding, productName } = item;
-                                const progressPercent = (funding.targetAmount > 0)
-                                    ? (funding.currentAmount / funding.targetAmount) * 100
-                                    : 0;
-                                const daysLeft = getDaysLeft(funding.expiresAt);
                                 const isAvailable = item.status === 'AVAILABLE';
 
                                 return (
@@ -445,7 +475,7 @@ export default function CartPage() {
                                         <div className="relative w-20 h-24 bg-secondary flex-shrink-0 overflow-hidden">
                                             <Image
                                                 src={funding?.product?.imageUrl || "/images/placeholder-product.svg"}
-                                                alt={productName}
+                                                alt={productName || "상품"}
                                                 fill
                                                 className={cn("object-cover", !isAvailable && "grayscale")}
                                                 onError={(e) => {
@@ -472,7 +502,7 @@ export default function CartPage() {
                                                     <p className={cn(
                                                         "text-sm line-clamp-2",
                                                         !isAvailable && "text-muted-foreground"
-                                                    )}>{productName}</p>
+                                                    )}>{productName || '상품 정보 없음'}</p>
                                                 </div>
                                                 <button
                                                     onClick={() => handleRemove(item.id)}
@@ -490,42 +520,40 @@ export default function CartPage() {
                                                 </div>
                                             )}
 
-                                            {/* Progress Bar */}
-                                            {isAvailable && (
-                                                <div className="space-y-1 mt-2">
-                                                    <Progress value={progressPercent} className="h-1" />
-                                                    <div className="flex justify-between text-[10px] text-muted-foreground">
-                                                        <span>{Math.round(progressPercent)}% 달성</span>
-                                                        {daysLeft !== null && (
-                                                            <span className={daysLeft <= 3 ? 'text-destructive' : ''}>
-                                                                D-{daysLeft}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )}
-
                                             {/* Amount Input */}
                                             <div className="flex items-center justify-between mt-3">
                                                 <span className="text-xs text-muted-foreground">참여 금액</span>
-                                                <div className="flex items-center gap-1">
-                                                    <input
-                                                        type="text"
-                                                        value={item.amount.toLocaleString()}
-                                                        onChange={(e) => {
-                                                            if (!isAvailable) return;
-                                                            const value = parseInt(e.target.value.replace(/,/g, '')) || 0;
-                                                            if (value >= 0) {
-                                                                handleUpdateAmount(item.id, value);
-                                                            }
-                                                        }}
-                                                        disabled={!isAvailable}
-                                                        className={cn(
-                                                            "w-20 text-sm font-medium text-right bg-transparent border-b border-border focus:border-foreground focus:outline-none py-0.5",
-                                                            !isAvailable && "text-muted-foreground cursor-not-allowed"
-                                                        )}
-                                                    />
-                                                    <span className="text-sm">원</span>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="flex items-center justify-end w-24">
+                                                        <input
+                                                            type="text"
+                                                            value={editingItemIds.has(item.id) ? (tempAmounts[item.id] || '') : item.amount.toLocaleString()}
+                                                            onChange={(e) => {
+                                                                if (!isAvailable) return;
+                                                                const value = e.target.value.replace(/[^0-9]/g, '');
+                                                                const formatted = value ? parseInt(value, 10).toLocaleString() : '';
+                                                                setTempAmounts(v => ({ ...v, [item.id]: formatted }));
+                                                            }}
+                                                            disabled={!isAvailable || !editingItemIds.has(item.id)}
+                                                            className={cn(
+                                                                "text-sm font-medium text-right bg-transparent focus:outline-none py-0.5 transition-all outline-none",
+                                                                !isAvailable ? "text-muted-foreground cursor-not-allowed" : "text-foreground",
+                                                                editingItemIds.has(item.id) && "border-b border-foreground"
+                                                            )}
+                                                            style={{
+                                                                width: `${Math.max(2, (editingItemIds.has(item.id) ? (tempAmounts[item.id] || '') : item.amount.toLocaleString()).length)}ch`,
+                                                            }}
+                                                        />
+                                                        <span className="text-sm">원</span>
+                                                    </div>
+                                                    {isAvailable && (
+                                                        <button
+                                                            onClick={() => toggleEdit(item.id, item.amount)}
+                                                            className="text-[11px] text-foreground border border-border rounded-sm px-2 py-0.5 hover:bg-secondary transition-colors shrink-0 ml-1"
+                                                        >
+                                                            {editingItemIds.has(item.id) ? '저장' : '수정'}
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
