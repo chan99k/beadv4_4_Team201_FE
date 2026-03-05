@@ -8,7 +8,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FundingActionBox } from '@/features/funding/components/FundingActionBox';
 import { ParticipateModal } from '@/features/funding/components/ParticipateModal';
-import { RecipientActionButtons } from '@/features/funding/components/RecipientActionButtons';
 import { ParticipantsModal } from '@/features/funding/components/ParticipantsModal';
 import { Separator } from '@/components/ui/separator';
 import { useFunding } from '@/features/funding/hooks/useFunding';
@@ -173,14 +172,21 @@ export default function FundingDetailPage() {
                     </div>
                 </div>
 
-                {/* Action Box or Recipient Actions */}
+                {/* Action Box - Only show when IN_PROGRESS */}
                 <div className="mt-4">
-                    {funding.status === 'ACHIEVED' ? (
-                        <RecipientActionButtons fundingId={funding.id} />
-                    ) : (
+                    {funding.status === 'IN_PROGRESS' && (
                         <FundingActionBox
                             onParticipate={() => setParticipateModalOpen(true)}
                         />
+                    )}
+                    {funding.status !== 'IN_PROGRESS' && (
+                        <div className="bg-secondary/30 rounded-xl p-6 text-center">
+                            <p className="text-sm font-medium text-muted-foreground">
+                                {funding.status === 'ACHIEVED' || funding.status === 'ACCEPTED'
+                                    ? '펀딩이 성공적으로 달성되었습니다!'
+                                    : '펀딩이 종료되었습니다.'}
+                            </p>
+                        </div>
                     )}
                 </div>
 
@@ -197,10 +203,9 @@ export default function FundingDetailPage() {
                     recipient={{
                         nickname: funding.recipient.nickname || '알 수 없음'
                     }}
-                    onSuccess={(mode) => {
+                    onSuccess={(mode, message) => {
                         if (mode === 'cart') {
-                            toast.success('장바구니에 담겼습니다.', {
-                                description: '결제를 진행하시겠습니까?',
+                            toast.success(message || '장바구니에 상품을 추가했습니다.', {
                                 action: {
                                     label: '장바구니 확인',
                                     onClick: () => router.push('/cart')

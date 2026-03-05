@@ -46,6 +46,21 @@ export const cartHandlers: HttpHandler[] = [
       amount: number;
     };
 
+    // Check if already in cart
+    const existingItem = (cartItems || []).find(
+      (item) => item.targetType === targetType && parseInt(String(item.targetId), 10) === targetId
+    );
+
+    if (existingItem) {
+      existingItem.amount = amount;
+      return HttpResponse.json({
+        result: 'SUCCESS',
+        data: null,
+        message: '이미 장바구니에 있는 상품의 가격이 수정되었습니다.',
+        errorCode: null,
+      });
+    }
+
     let funding: Funding | undefined;
     let isNewFunding = false;
 
@@ -100,36 +115,50 @@ export const cartHandlers: HttpHandler[] = [
 
     const updatedCartItems = [...cartItems, newCartItem];
     setCartItems(updatedCartItems);
-    return HttpResponse.json(newCartItem, { status: 201 });
+    return HttpResponse.json(
+      {
+        result: 'SUCCESS',
+        data: newCartItem,
+        message: '장바구니에 상품을 추가했습니다.',
+        errorCode: null,
+      },
+      { status: 201 }
+    );
   }),
 
-  http.patch('**/api/v2/cart/items/:itemId', async ({ params, request }) => {
-    const { itemId } = params;
+  http.patch('**/api/v2/carts/items', async ({ request }) => {
     const body = await request.json();
-    const { amount, selected } = body as {
-      amount?: number;
-      selected?: boolean;
-    };
+    const updates = body as { targetType: string; targetId: number; amount: number }[];
 
-    const item = cartItems.find((i) => i.id === itemId);
-    if (!item) {
-      return new HttpResponse(null, { status: 404 });
-    }
+    updates.forEach(update => {
+      const item = cartItems.find(
+        i => i.targetType === update.targetType && i.targetId === update.targetId
+      );
+      if (item) {
+        item.amount = update.amount;
+      }
+    });
 
-    if (amount !== undefined) item.amount = amount;
-    if (selected !== undefined) item.selected = selected;
-
-    return HttpResponse.json(item);
-  }),
-
-  http.delete('**/api/v2/cart/items/:itemId', ({ params }) => {
-    const { itemId } = params;
-    const updatedCartItems = cartItems.filter((i) => i.id !== itemId);
-    setCartItems(updatedCartItems);
     return new HttpResponse(null, { status: 204 });
   }),
 
-  http.delete('**/api/v2/cart/clear', () => {
+  http.delete('**/api/v2/carts/items/:targetType', ({ params, request }) => {
+    const { targetType } = params;
+    const url = new URL(request.url);
+    const targetIdsStr = url.searchParams.get('targetIds');
+
+    if (targetIdsStr) {
+      const targetIds = targetIdsStr.split(',').map(id => parseInt(id, 10));
+      const updatedCartItems = cartItems.filter(
+        i => !(i.targetType === targetType && targetIds.includes(i.targetId))
+      );
+      setCartItems(updatedCartItems);
+    }
+
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.delete('**/api/v2/carts', () => {
     setCartItems([]);
     return new HttpResponse(null, { status: 204 });
   }),
