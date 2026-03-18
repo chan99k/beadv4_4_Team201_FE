@@ -15,23 +15,26 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Loader2, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAcceptFunding, useRefuseFunding } from '@/features/funding/hooks/useFundingMutations';
+import { useAcceptFunding, useRefuseFunding, useRetryAcceptFunding } from '@/features/funding/hooks/useFundingMutations';
+import type { FundingStatus } from '@/types/funding';
 
 interface RecipientActionButtonsProps {
     fundingId: string;
+    status: FundingStatus;
 }
 
-export function RecipientActionButtons({ fundingId }: RecipientActionButtonsProps) {
+export function RecipientActionButtons({ fundingId, status }: RecipientActionButtonsProps) {
     const [acceptDialogOpen, setAcceptDialogOpen] = useState(false);
     const [refuseDialogOpen, setRefuseDialogOpen] = useState(false);
 
     const acceptFunding = useAcceptFunding();
     const refuseFunding = useRefuseFunding();
+    const retryAcceptFunding = useRetryAcceptFunding();
 
     const handleAccept = () => {
         acceptFunding.mutate(fundingId, {
-            onSuccess: () => {
-                toast.success('펀딩을 수락했습니다.');
+            onSuccess: (data) => {
+                toast.success(`'${data.productName}' 펀딩을 수락했습니다.`);
                 setAcceptDialogOpen(false);
             },
             onError: (error) => {
@@ -47,8 +50,8 @@ export function RecipientActionButtons({ fundingId }: RecipientActionButtonsProp
                 data: { reason: '다른 상품을 원합니다.' },
             },
             {
-                onSuccess: () => {
-                    toast.success('펀딩을 거절했습니다. 참여자들에게 환불됩니다.');
+                onSuccess: (data) => {
+                    toast.success(`'${data.productName}' 펀딩을 거절했습니다. 참여자들에게 환불됩니다.`);
                     setRefuseDialogOpen(false);
                 },
                 onError: (error) => {
@@ -57,6 +60,56 @@ export function RecipientActionButtons({ fundingId }: RecipientActionButtonsProp
             }
         );
     };
+
+    const handleRetryAccept = () => {
+        retryAcceptFunding.mutate(fundingId, {
+            onSuccess: (data) => {
+                toast.success(`'${data.productName}' 수락 재시도를 성공했습니다.`);
+            },
+            onError: (error: Error) => {
+                toast.error(error.message || '수락 재시도에 실패했습니다.');
+            },
+        });
+    };
+
+    if (status === 'ACCEPT_FAILED') {
+        return (
+            <Card className="p-4 shadow-sm border-t md:border">
+                <div className="space-y-3">
+                    <p className="text-sm font-medium text-center text-destructive">
+                        수락 처리에 실패했습니다. 다시 시도해주세요.
+                    </p>
+                    <div className="flex gap-2">
+                        <Button
+                            variant="outline"
+                            className="flex-1 h-12"
+                            onClick={() => setRefuseDialogOpen(true)}
+                            disabled={refuseFunding.isPending}
+                        >
+                            {refuseFunding.isPending ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                                <X className="mr-2 h-4 w-4" />
+                            )}
+                            거절하기
+                        </Button>
+                        <Button
+                            className="flex-1 h-12"
+                            onClick={handleRetryAccept}
+                            disabled={retryAcceptFunding.isPending}
+                        >
+                            {retryAcceptFunding.isPending ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                                <Check className="mr-2 h-4 w-4" />
+                            )}
+                            수락 재시도하기
+                        </Button>
+                    </div>
+                </div>
+            </Card>
+        );
+    }
 
     return (
         <>
